@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Scrapy settings for imdb_scraper project
+# Scrapy settings for imdb_crawler project
 #
 # For simplicity, this file contains only settings considered important or
 # commonly used. You can find more settings consulting the documentation:
@@ -9,17 +9,19 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = 'imdb_scraper'
+BOT_NAME = 'imdb_crawler'
 
-SPIDER_MODULES = ['imdb_scraper.spiders']
-NEWSPIDER_MODULE = 'imdb_scraper.spiders'
+SPIDER_MODULES = ['imdb_crawler.spiders']
+NEWSPIDER_MODULE = 'imdb_crawler.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'imdb_scraper (+http://www.yourdomain.com)'
+#USER_AGENT = 'imdb_crawler (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
+
+LOG_LEVEL = "ERROR"
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -47,14 +49,14 @@ ROBOTSTXT_OBEY = True
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 #SPIDER_MIDDLEWARES = {
-#    'imdb_scraper.middlewares.ImdbScraperSpiderMiddleware': 543,
+#    'imdb_crawler.middlewares.ImdbCrawlerSpiderMiddleware': 543,
 #}
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    'imdb_scraper.middlewares.ImdbScraperDownloaderMiddleware': 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+    'imdb_crawler.middlewares.ImdbCrawlerDownloaderMiddleware': 543,
+}
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -64,9 +66,9 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'imdb_scraper.pipelines.ImdbScraperPipeline': 300,
-#}
+ITEM_PIPELINES = {
+    'imdb_crawler.pipelines.ImdbCrawlerPipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
