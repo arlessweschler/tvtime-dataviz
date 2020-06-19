@@ -2,8 +2,6 @@ import datetime
 import html
 import re
 
-import tldextract
-
 
 def strip_html_tags(text):
     """
@@ -22,18 +20,6 @@ def strip_html_tags(text):
     # Remove spaces at the beginning and at the end of the string.
     text = text.strip()
     return text
-
-
-def get_domain(url):
-    """
-    This method extracts the domain from the URL of a website.
-    :param complete: True is the subdomain is also needed, False otherwise.
-    :param url: A string containing the URL.
-    :return: A string containing the domain extracted from the URL.
-    """
-    url = remove_scheme(url)
-    extracted_domain = tldextract.extract(url)
-    return extracted_domain.fqdn
 
 
 def add_scheme(url):

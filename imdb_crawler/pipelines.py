@@ -20,11 +20,12 @@ class ImdbCrawlerPipeline:
         session = self.Session()
 
         tv_series = TvSeries()
-        tv_series.page_url = item["id"]
-        tv_series.link_url = item["name"]
-        tv_series.link_text = item["start_year"]
-        tv_series.in_list = item["rating"]
+        tv_series.name = item["name"]
+        tv_series.start_year = item["start_year"]
+        tv_series.rating = item["rating"]
+        tv_series.length = item["length"]
         try:
+            session.add(tv_series)
             session.commit()
         except Exception:
             session.rollback()

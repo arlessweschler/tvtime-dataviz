@@ -14,7 +14,7 @@ def db_connect():
     Returns sqlalchemy engine instance
     """
     path = Path(os.getcwd())
-    return create_engine(f"sqlite:///{path.parent}/imdb.db", connect_args={'timeout': 15})
+    return create_engine(f"sqlite:///imdb.db", connect_args={'timeout': 15})
 
 
 def create_table(engine):
@@ -22,10 +22,10 @@ def create_table(engine):
 
 
 class TvSeries(Base):
-    __tablename__ = "page_links"
+    __tablename__ = "tv_series"
 
     id = Column(Integer, primary_key=True)
     name = Column('name', String(200))
     start_year = Column('start_year', Integer)
     rating = Column('rating', Float)
-
+    length = Column("length", String(10))

@@ -9,7 +9,8 @@ from scrapy import Item, Field
 
 
 class TvSeriesItem(Item):
-    id = Field
+    id = Field()
     name = Field()
     start_year = Field()
     rating = Field()
+    length = Field()
