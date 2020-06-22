@@ -1,24 +1,28 @@
 from bs4 import BeautifulSoup
 
+from imdb_crawler.items import TvSeriesItem
+
 
 class TvSeriesScraper:
     def __init__(self, body):
         self.html = BeautifulSoup(body, "lxml")
 
-    def get_all_tv_series(self):
+    def get_all_tv_series_items(self):
         divs = self.html.find_all("div", {"class": "lister-item-content"})
         infos = []
         for div in divs:
-            name = div.find('a').text
-            url = div.find('a')["href"]
+            tv_series_item = TvSeriesItem()
+            tv_series_item["name"] = div.find('a').text
+            tv_series_item["url"] = div.find('a')["href"]
+
             years = div.find_all("span")[1].text[1:-1].split('–')
-            start_year = years[0]
+            tv_series_item["start_year"] = years[0]
             try:
-                end_year = years[1]
+                tv_series_item["end_year"] = years[1]
             except IndexError:
-                end_year = years[0]
-            rating = div.find("strong").text
-            infos.append([name, url, start_year, end_year, rating])
+                tv_series_item["end_year"] = years[0]
+            tv_series_item["rating_avg"] = div.find("strong").text
+            infos.append(tv_series_item)
         return infos
 
     def get_next_page(self):
@@ -29,9 +33,4 @@ class TvSeriesScraper:
         return url
 
 
-class TvShowScraper:
-    def __init__(self, body):
-        self.html = BeautifulSoup(body, "lxml")
 
-    def get_length(self):
-        return self.html.find("div", {"class": "subtext"}).find("time").text
