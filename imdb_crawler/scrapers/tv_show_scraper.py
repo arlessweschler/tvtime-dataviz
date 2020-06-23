@@ -16,6 +16,14 @@ class TvShowScraper:
         except IndexError:
             item["genres"] = ""
 
+        # YEARS
+        years = self.html.find("a", {"title": "See more release dates"}).text[:-2].split("(")[1].split('–')
+        item["start_year"] = years[0]
+        try:
+            item["end_year"] = years[1]
+        except IndexError:
+            item["end_year"] = ""
+
         # LENGTH
         try:
             item["ep_length"] = strip_html_tags(self.html.find("div", {"class": "subtext"}).find("time").text)
@@ -24,6 +32,9 @@ class TvShowScraper:
 
         # N_SEASONS
         item["n_seasons"] = self.html.find("div", {"class": "seasons-and-year-nav"}).find('a').text
+
+        # N_EPISODES
+        item["n_episodes"] = self.html.find_all("span", {"class": "bp_sub_heading"})[-1].text.split(" ")[0]
 
         # POPULARITY
         try:

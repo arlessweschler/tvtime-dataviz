@@ -14,7 +14,7 @@ class ImdbSpider(scrapy.Spider):
     name = "imdb_spider"
 
     num_votes = 5000
-    release_date = 1990
+    release_date = 1989
     min_rating = 8.0
 
     start_urls = [f"https://www.imdb.com/search/title/?count=100&num_votes={num_votes},&release_date={release_date},"
@@ -25,7 +25,8 @@ class ImdbSpider(scrapy.Spider):
 
         items = scraper.get_all_tv_series_items()
         for item in items:
-            yield response.follow(item["url"], callback=self.parse_show, meta={"tv_series_item": item})
+            url = f"/title/{item['id']}/"
+            yield response.follow(url, callback=self.parse_show, meta={"tv_series_item": item})
 
         next_page = scraper.get_next_page()
         if next_page is not None:

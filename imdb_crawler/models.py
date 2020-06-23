@@ -25,14 +25,14 @@ def create_table(engine):
 class TvSeries(Base):
     __tablename__ = "tv_series"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(String, primary_key=True)
     name = Column('name', String(200))
-    url = Column('url', String(200))
     genres = Column('genres', String(200))
     start_year = Column('start_year', Integer)
     end_year = Column('end_year', Integer)
     ep_length = Column("ep_length", String(10))
     n_seasons = Column('n_seasons', Integer)
+    n_episodes = Column('n_episodes', Integer)
     popularity_rank = Column('popularity_rank', Integer)
     n_ratings = Column('n_ratings', Integer)
     rating_avg = Column('rating_avg', String(3))

@@ -11,12 +11,12 @@ from scrapy import Item, Field
 class TvSeriesItem(Item):
     id = Field()
     name = Field()
-    url = Field()
     genres = Field()
     start_year = Field()
     end_year = Field()
     ep_length = Field()
     n_seasons = Field()
+    n_episodes = Field()
     popularity_rank = Field()
     n_ratings = Field()
     rating_avg = Field()

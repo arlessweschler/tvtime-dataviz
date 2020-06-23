@@ -13,14 +13,8 @@ class TvSeriesScraper:
         for div in divs:
             tv_series_item = TvSeriesItem()
             tv_series_item["name"] = div.find('a').text
-            tv_series_item["url"] = div.find('a')["href"]
+            tv_series_item["id"] = div.find('a')["href"].split('/')[2]
 
-            years = div.find_all("span")[1].text[1:-1].split('–')
-            tv_series_item["start_year"] = years[0]
-            try:
-                tv_series_item["end_year"] = years[1]
-            except IndexError:
-                tv_series_item["end_year"] = years[0]
             tv_series_item["rating_avg"] = div.find("strong").text
             infos.append(tv_series_item)
         return infos

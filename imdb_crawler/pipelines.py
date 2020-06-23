@@ -20,13 +20,14 @@ class ImdbCrawlerPipeline:
         session = self.Session()
 
         tv_series = TvSeries()
+        tv_series.id = item["id"]
         tv_series.name = item["name"]
-        tv_series.url = item["url"]
         tv_series.genres = item["genres"]
         tv_series.start_year = item["start_year"]
         tv_series.end_year = item["end_year"]
         tv_series.ep_length = item["ep_length"]
         tv_series.n_seasons = item["n_seasons"]
+        tv_series.n_episodes = item["n_episodes"]
         tv_series.popularity_rank = item["popularity_rank"]
         tv_series.n_ratings = item["n_ratings"]
         tv_series.rating_avg = item["rating_avg"]
