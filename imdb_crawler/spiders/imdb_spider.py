@@ -14,7 +14,7 @@ class ImdbSpider(scrapy.Spider):
     name = "imdb_spider"
 
     num_votes = 5000
-    release_date = 2000
+    release_date = 1990
     min_rating = 8.0
 
     start_urls = [f"https://www.imdb.com/search/title/?count=100&num_votes={num_votes},&release_date={release_date},"

@@ -12,6 +12,7 @@ class TvSeriesItem(Item):
     id = Field()
     name = Field()
     url = Field()
+    genres = Field()
     start_year = Field()
     end_year = Field()
     ep_length = Field()

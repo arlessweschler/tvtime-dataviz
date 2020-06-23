@@ -22,6 +22,7 @@ class ImdbCrawlerPipeline:
         tv_series = TvSeries()
         tv_series.name = item["name"]
         tv_series.url = item["url"]
+        tv_series.genres = item["genres"]
         tv_series.start_year = item["start_year"]
         tv_series.end_year = item["end_year"]
         tv_series.ep_length = item["ep_length"]
@@ -47,9 +48,10 @@ class ImdbCrawlerPipeline:
         tv_series.rating_M_45to100 = item["rating_M_45to100"]
         tv_series.rating_F_45to100 = item["rating_F_45to100"]
         try:
-            session.add(tv_series)
-            session.commit()
-            print(f"Inserted {tv_series.name}")
+            if 0 < int(tv_series.popularity_rank) < 1500:
+                session.add(tv_series)
+                session.commit()
+                print(f"Inserted {tv_series.name}")
         except Exception:
             session.rollback()
             raise

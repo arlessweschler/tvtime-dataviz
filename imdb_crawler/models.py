@@ -28,6 +28,7 @@ class TvSeries(Base):
     id = Column(Integer, primary_key=True)
     name = Column('name', String(200))
     url = Column('url', String(200))
+    genres = Column('genres', String(200))
     start_year = Column('start_year', Integer)
     end_year = Column('end_year', Integer)
     ep_length = Column("ep_length", String(10))
