@@ -1,5 +1,3 @@
-import pandas as pd
-
 import requests
 from bs4 import BeautifulSoup
 
@@ -19,8 +17,8 @@ headers = {
 
 
 # Given a TV show ID, it returns the name of the show.
-def get_show_name_from_id(tvtime_id):
-    html = requests.get(f"https://www.tvtime.com/en/show/{tvtime_id}", headers=headers).content
+def get_series_name_by_id(series_id):
+    html = requests.get(f"https://www.tvtime.com/en/show/{series_id}", headers=headers).content
     soup = BeautifulSoup(html, "lxml")
     name = soup.find("div", {"class": "container-fluid"}).find("h1").text.strip()
     return name
@@ -87,13 +85,4 @@ def get_show_names_from_episode_id(episodes_df):
     return episodes_df
 
 
-def get_tv_shows(user_tv_show_data_df):
-    tv_shows_df = pd.DataFrame(columns=["tv_show_id", "tv_show_name"])
-    for i, row in user_tv_show_data_df.iterrows():
-        if row["is_followed"] == 1:
-            show_id = row["tv_show_id"]
-            show_name = get_show_name_from_id(show_id)
-            tv_shows_df.append([show_id, show_name])
-            print(f"Show {show_id}: {show_name} retrieved.")
 
-    return tv_shows_df
