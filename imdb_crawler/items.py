@@ -11,6 +11,7 @@ from scrapy import Item, Field
 class TvSeriesItem(Item):
     id = Field()
     name = Field()
+    type = Field()
     genres = Field()
     start_year = Field()
     end_year = Field()

@@ -14,7 +14,7 @@ def db_connect():
     Returns sqlalchemy engine instance
     """
     path = Path(os.getcwd())
-    return create_engine(f"sqlite:///imdb.db", connect_args={'timeout': 15})
+    return create_engine("sqlite:///imdb.db", connect_args={'timeout': 15})
 
 
 def create_table(engine):
@@ -27,9 +27,10 @@ class TvSeries(Base):
 
     id = Column(String, primary_key=True)
     name = Column('name', String(200))
+    type = Column(String(30))
     genres = Column('genres', String(200))
-    start_year = Column('start_year', Integer)
-    end_year = Column('end_year', Integer)
+    start_year = Column('start_year', String(4))
+    end_year = Column('end_year', String(4))
     ep_length = Column("ep_length", String(10))
     n_seasons = Column('n_seasons', Integer)
     n_episodes = Column('n_episodes', Integer)

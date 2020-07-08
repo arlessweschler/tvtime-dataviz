@@ -5,7 +5,7 @@ from helper import get_tv_shows, get_episodes
 
 # Create csv file containing tv shows.
 try:
-    tv_shows_df = pd.read_csv("data/tv_shows.csv")
+    tv_shows_df = pd.read_csv("data/tv_series.csv")
 except FileNotFoundError:
     # Read the source file for TV series seen from TvTime app.
     user_tv_show_data_df = pd.read_csv("data/user_tv_show_data.csv")
@@ -16,7 +16,7 @@ except FileNotFoundError:
 
     # Collect info about followed TV shows.
     tv_shows_df = get_tv_shows(followed_tv_shows_df)
-    tv_shows_df.to_csv("data/tv_shows.csv")
+    tv_shows_df.to_csv("data/tv_series.csv")
 
 # Create csv file containing episodes.
 try:
