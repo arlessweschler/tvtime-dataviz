@@ -1,15 +1,13 @@
 import pandas as pd
 
-from apis.tvtime_scraper import get_show_names_from_episode_id
-from helper import get_tv_shows
+from helper import get_tv_shows, get_episodes
 
-seen_episode_df = pd.read_csv("data/seen_episode.csv")
 
-# Look up names of the shows on the tvtime.com website.
+# Create csv file containing tv shows.
 try:
     tv_shows_df = pd.read_csv("data/tv_shows.csv")
 except FileNotFoundError:
-    # Read the source file for TV shows seen from TvTime app.
+    # Read the source file for TV series seen from TvTime app.
     user_tv_show_data_df = pd.read_csv("data/user_tv_show_data.csv")
 
     # Keep only followed shows.
@@ -20,10 +18,13 @@ except FileNotFoundError:
     tv_shows_df = get_tv_shows(followed_tv_shows_df)
     tv_shows_df.to_csv("data/tv_shows.csv")
 
-# Link id_episode to id_tv_show.
+# Create csv file containing episodes.
 try:
     tv_episodes_df = pd.read_csv("data/tv_episodes.csv")
 except FileNotFoundError:
-    tv_episodes_df = get_show_names_from_episode_id(seen_episode_df)
-    tv_episodes_df = tv_episodes_df[["show_name", "episode_id", "created_at", "episode_name"]]
+    # Read the source file for episodes seen from TvTime app.
+    seen_episode_df = pd.read_csv("data/seen_episode.csv")
+
+    # Collect info about seen TV shows.
+    tv_episodes_df = get_episodes(seen_episode_df)
     tv_episodes_df.to_csv("data/tv_episodes.csv")

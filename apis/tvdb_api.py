@@ -8,8 +8,7 @@ tvdb_apikey = config('tvdb_apikey')
 tvdb_userkey = config('tvdb_userkey')
 tvdb_name = config('tvdb_name')
 
-# Retrieve token from API.
-login_endpoint = "https://api.thetvdb.com/login"
+# Headers for API requests.
 headers = {
     "Content-Type": 'application/json',
     "Accept": 'application/json',
@@ -24,6 +23,10 @@ headers = {
     "user-agent": "Mozilla/5.0(Windows NT 10.0; Win64; x64) AppleWebKit/537.36(KHTML, like Gecko) "
                   "Chrome/83.0.4103.116 Safari/537.36"
 }
+
+# Retrieve token from API.
+login_endpoint = "https://api.thetvdb.com/login"
+
 data = {
     "apikey": tvdb_apikey,
     "userkey": tvdb_userkey,
@@ -33,23 +36,6 @@ response = requests.post(login_endpoint, headers=headers, data=json.dumps(data))
 token = json.loads(response).get("token")
 
 headers["Authorization"] = f"Bearer {token}"
-
-
-def get_show_name_from_episode_id(episode_id):
-    endpoint = f"https://api.thetvdb.com/episodes/{episode_id}"
-    response1 = requests.get(endpoint, headers=headers).content
-    series_id = json.loads(response1).get("data").get("seriesId")
-
-    endpoint = f"https://api.thetvdb.com/series/{series_id}"
-    response2 = requests.get(endpoint, headers=headers).content
-    name = json.loads(response2).get("data").get("seriesName")
-    return name
-
-
-def attach_show_name_to_episodes(df):
-    for index, row in df.iterrows():
-        row["show_name"] = get_show_name_from_episode_id(row["episode_id"])
-    return df
 
 
 def get_series_by_id(series_id):
@@ -89,4 +75,26 @@ def get_series_by_name(series_name):
             series_id = el.get("id")
             tv_show = get_series_by_id(series_id)
             break
+    return tv_show
+
+
+def get_episode_by_id(episode_id):
+    endpoint = f"https://api.thetvdb.com/episodes/{episode_id}"
+    response = requests.get(endpoint, headers=headers).content
+    data = json.loads(response).get("data")
+    tv_show = {
+        "tvdb_id": episode_id,
+        "aired_season": data["airedSeason"],
+        "aired_episode": data["airedEpisodeNumber"],
+        "name": data["episodeName"],
+        "first_aired": data["firstAired"],
+        "overview": data["overview"],
+        "series_tvdb_id": data["seriesId"],
+        "rating": data["contentRating"],
+        "imdb_id": data["imdbId"],
+        "tvdb_avg_rating": data["siteRating"],
+        "tvdb_ratings": data["siteRatingCount"]
+    }
+
+    print(f"Episode {episode_id}: {data['episodeName']} retrieved.")
     return tv_show
