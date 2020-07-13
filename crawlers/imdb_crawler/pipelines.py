@@ -1,6 +1,6 @@
 from sqlalchemy.orm import sessionmaker
 
-from imdb_crawler.models import db_connect, create_table, TvSeries
+from crawlers.imdb_crawler.models import db_connect, create_table, TvSeries
 
 
 class ImdbCrawlerPipeline:

@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-from imdb_crawler.items import TvSeriesItem
+from crawlers.imdb_crawler.items import TvSeriesItem
 
 
 class TvSeriesScraper:
