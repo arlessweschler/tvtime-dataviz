@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-from crawlers.imdb_crawler.helpers.utility import strip_html_tags
+from helpers.utility import strip_html_tags
 
 
 class TvShowScraper:

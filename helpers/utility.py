@@ -69,3 +69,13 @@ def get_time():
     time = datetime.datetime.now().time()
     string = time.strftime("%H:%M:%S")
     return string
+
+
+def transform_length(time):
+    minutes = 0
+    if 'h' in time:
+        minutes += int(time.split("h")[0]) * 60
+        time = time.split('h')[1]
+    if "min" in time:
+        minutes += int(time.split("min")[0])
+    return minutes

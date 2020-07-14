@@ -14,7 +14,7 @@ def db_connect():
     Returns sqlalchemy engine instance
     """
     path = Path(os.getcwd())
-    return create_engine("sqlite:///imdb.db", connect_args={'timeout': 15})
+    return create_engine("sqlite:///../data/input/imdb.db", connect_args={'timeout': 15})
 
 
 def create_table(engine):
