@@ -21,7 +21,8 @@ def get_tv_shows(followed_tv_shows_df):
 def get_episodes(seen_episodes_df):
     episodes = []
     l = len(seen_episodes_df)
-    for i, row in seen_episodes_df.iterrows():
+    i = 0
+    for _, row in seen_episodes_df.iterrows():
         print(f"{i} / {l} -> {(i/l*100):.1f} %")
         # Get data from TVDB api.
         episode_id = row["episode_id"]
@@ -31,5 +32,6 @@ def get_episodes(seen_episodes_df):
             episodes.append(episode)
         except TypeError:
             pass
+        i += 1
     episodes_df = pd.DataFrame(episodes)
     return episodes_df

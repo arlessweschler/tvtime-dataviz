@@ -23,27 +23,33 @@ except FileNotFoundError:
     # Collect all info.
     tv_shows_df = get_tv_shows(followed_tv_shows_df)
 
-tv_shows_df.to_csv("data/output/tv_series.csv")
+# tv_shows_df.to_csv("data/output/tv_series.csv")
 
 
 # TVTIME EPISODES WATCHED
 
+# Read the source file for episodes seen from TvTime app.
+seen_episode_df = pd.read_csv("data/input/seen_episode.csv")
+
 # Create csv file containing episodes.
 try:
     tv_episodes_df = pd.read_csv("data/output/tv_episodes.csv")
+    # Collect info about new episodes.
+    need_info = seen_episode_df["episode_id"].map(lambda x: x not in list(tv_episodes_df["tvdb_id"]))
+    new_tv_episodes_df = get_episodes(seen_episode_df.loc[need_info])
+    tv_episodes_df = tv_episodes_df.append(new_tv_episodes_df)
 except FileNotFoundError:
-    # Read the source file for episodes seen from TvTime app.
-    seen_episode_df = pd.read_csv("data/input/seen_episode.csv")
-
-    # Collect info about seen TV shows.
+    # Collect info all episodes.
     tv_episodes_df = get_episodes(seen_episode_df)
-    tv_episodes_df.to_csv("data/output/tv_episodes.csv")
+
+tv_episodes_df.to_csv("data/output/tv_episodes.csv")
 
 # Create my_ratings csv file.
 try:
     my_ratings_df = pd.read_csv("data/input/my_ratings.csv")
 except FileNotFoundError:
     my_ratings_df = pd.DataFrame(columns=["tvdb_id", "imdb_id", "series_name", "my_rating"])
+# Add ratings for TV series not yet rated.
 new_series = []
 for i, tv_show in tv_shows_df.iterrows():
     if tv_show["tvdb_id"] not in list(my_ratings_df["tvdb_id"]):
