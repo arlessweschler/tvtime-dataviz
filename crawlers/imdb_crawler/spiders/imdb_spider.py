@@ -13,9 +13,12 @@ from crawlers.imdb_crawler.scrapers.tv_show_scraper import TvShowScraper
 class ImdbSpider(scrapy.Spider):
     name = "imdb_spider"
 
+    tot_items = None
+    items = 0
+
     num_votes = 5000
     release_date = 1989
-    min_rating = 8.0
+    min_rating = 0.0
 
     start_urls = [f"https://www.imdb.com/search/title/?count=100&num_votes={num_votes},&release_date={release_date},"
                   f"&title_type=tv_series&title_type=tv_miniseries&user_rating={min_rating},"]
@@ -23,7 +26,7 @@ class ImdbSpider(scrapy.Spider):
     def parse(self, response):
         scraper = TvSeriesScraper(response.body)
 
-        items = scraper.get_all_tv_series_items()
+        items, self.tot_items = scraper.get_all_tv_series_items()
         for item in items:
             url = f"/title/{item['id']}/"
             yield response.follow(url, callback=self.parse_show, meta={"tv_series_item": item})

@@ -32,7 +32,7 @@ class TvSeries(Base):
     start_year = Column('start_year', String(4))
     end_year = Column('end_year', String(4))
     ep_length = Column("ep_length", String(10))
-    n_seasons = Column('n_seasons', Integer)
+    n_seasons = Column('n_seasons', String(10))
     n_episodes = Column('n_episodes', Integer)
     popularity_rank = Column('popularity_rank', Integer)
     n_ratings = Column('n_ratings', Integer)

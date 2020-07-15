@@ -89,8 +89,8 @@ def create_imdb_csv():
     imdb_series_df.to_csv("data/output/imdb_series.csv")
 
 
-"""update_seen_tv_series()
-update_seen_tv_episodes()
-update_my_ratings()
-update_popular_tv_series()"""
+# update_seen_tv_series()
+# update_seen_tv_episodes()
+# update_my_ratings()
+# update_popular_tv_series()
 create_imdb_csv()

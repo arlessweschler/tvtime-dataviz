@@ -9,6 +9,8 @@ class TvSeriesScraper:
 
     def get_all_tv_series_items(self):
         divs = self.html.find_all("div", {"class": "lister-item-content"})
+        progress = self.html.find("div", {"class": "desc"}).text.replace(',', '').replace('\n', '')
+        tot = int(progress.split(" ")[2])
         infos = []
         for div in divs:
             tv_series_item = TvSeriesItem()
@@ -17,7 +19,7 @@ class TvSeriesScraper:
 
             tv_series_item["rating_avg"] = div.find("strong").text
             infos.append(tv_series_item)
-        return infos
+        return infos, tot
 
     def get_next_page(self):
         try:

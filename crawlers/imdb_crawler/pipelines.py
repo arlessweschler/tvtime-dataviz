@@ -1,6 +1,7 @@
 from sqlalchemy.orm import sessionmaker
 
 from crawlers.imdb_crawler.models import db_connect, create_table, TvSeries
+from helpers.printer import green
 
 
 class ImdbCrawlerPipeline:
@@ -50,10 +51,12 @@ class ImdbCrawlerPipeline:
         tv_series.rating_M_45to100 = item["rating_M_45to100"]
         tv_series.rating_F_45to100 = item["rating_F_45to100"]
         try:
-            if 0 < int(tv_series.popularity_rank) < 1500:
-                session.add(tv_series)
-                session.commit()
-                print(f"Inserted {tv_series.name}")
+            session.add(tv_series)
+            session.commit()
+            spider.items += 1
+            per = spider.items / spider.tot_items * 100
+            per_string = green(f"[{per:.1f}%]")
+            print(f"{per_string} {spider.items} {tv_series.name}")
         except Exception:
             session.rollback()
             raise
