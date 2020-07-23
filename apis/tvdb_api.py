@@ -53,15 +53,13 @@ def get_series_by_id(series_id):
         "first_aired": data["firstAired"],
         "network": data["network"],
         "runtime": data["runtime"],
-        "genre": ", ".join(data["genre"]),
+        "genres": " ".join(data["genre"]),
         "overview": data["overview"],
         "rating": data["rating"],
         "imdb_id": data["imdbId"],
         "tvdb_avg_rating": data["siteRating"],
         "tvdb_ratings": data["siteRatingCount"]
     }
-
-    print(f"Show {series_id}: {data['seriesName']} retrieved.")
     return tv_show
 
 

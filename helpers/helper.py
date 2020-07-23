@@ -1,19 +1,25 @@
 import pandas as pd
 
 from apis import tvtime_scraper, tvdb_api
+from helpers.printer import green
 
 
 def get_tv_shows(followed_tv_shows_df):
     tv_shows = []
-    for i, row in followed_tv_shows_df.iterrows():
+    tot = len(followed_tv_shows_df)
+    i = 0
+    for _, row in followed_tv_shows_df.iterrows():
         # Get data from TVDB api.
         series_id = row["tv_show_id"]
         try:
-            tv_shows.append(tvdb_api.get_series_by_id(series_id))
+            tv_show = tvdb_api.get_series_by_id(series_id)
         except TypeError:
             series_name = tvtime_scraper.get_series_name_from_series_id(series_id=series_id)
-            tv_shows.append(tvdb_api.get_series_by_name(series_name=series_name))
-
+            tv_show = tvdb_api.get_series_by_name(series_name=series_name)
+        tv_shows.append(tv_show)
+        perc = green(f"[{(i / tot * 100):.1f} %]")
+        print(f"{perc} Show {series_id}: {tv_show['series_name']} retrieved.")
+        i += 1
     tv_shows_df = pd.DataFrame(tv_shows)
     return tv_shows_df
 

@@ -24,7 +24,17 @@ def update_seen_tv_series():
         # Collect all info.
         tv_shows_df = get_tv_shows(followed_tv_shows_df)
 
-    tv_shows_df.to_csv("data/output/seen_tv_series.csv")
+    # Encoding of genres.
+    # Get a list of all the possible genres.
+    genres = set(" ".join(tv_shows_df["genres"].tolist()).split(" "))
+
+    # Create and fill columns in the dataframe.
+    for i, row in tv_shows_df.iterrows():
+        for genre in genres:
+            tv_shows_df.loc[i, f"genre_{genre.lower()}"] = int(genre in row["genres"])
+    tv_shows_df = tv_shows_df.drop(columns=["genres"])
+
+    tv_shows_df.to_csv("data/output/seen_tv_series.csv", index=False)
 
 
 def update_seen_tv_episodes():
@@ -62,10 +72,10 @@ def update_my_ratings():
                                "my_rating": ""})
     new_series_df = pd.DataFrame(new_series)
     my_ratings_df = my_ratings_df.append(new_series_df, ignore_index=True)
-    my_ratings_df.to_csv("data/input/my_ratings.csv")
+    my_ratings_df.to_csv("data/input/my_ratings.csv", index=False)
 
 
-def update_popular_tv_series():
+def update_imdb_tv_series():
     run_crawler()
 
 
@@ -86,11 +96,11 @@ def create_imdb_csv():
         imdb_series_df.loc[i, "ep_length"] = transform_length(row["ep_length"])
     imdb_series_df = imdb_series_df.drop(columns=["genres"])
 
-    imdb_series_df.to_csv("data/output/imdb_series.csv")
+    imdb_series_df.to_csv("data/output/imdb_series.csv", index=False)
 
 
-# update_seen_tv_series()
+update_seen_tv_series()
 # update_seen_tv_episodes()
 # update_my_ratings()
-# update_popular_tv_series()
-create_imdb_csv()
+# update_imdb_tv_series()
+# create_imdb_csv()
