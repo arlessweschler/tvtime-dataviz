@@ -1,25 +1,25 @@
 import pandas as pd
 
-from apis import tvtime_scraper, tvdb_api
+from apis import tvdb_api
 from helpers.printer import green
 
 
-def get_tv_shows(followed_tv_shows_df):
+def get_tv_shows(imdb_series_df):
     tv_shows = []
-    tot = len(followed_tv_shows_df)
-    i = 0
-    for _, row in followed_tv_shows_df.iterrows():
+    tot = len(imdb_series_df)
+    con = 0
+    for i, row in imdb_series_df.iterrows():
         # Get data from TVDB api.
-        series_id = row["tv_show_id"]
         try:
-            tv_show = tvdb_api.get_series_by_id(series_id)
+            tvdb_id = tvdb_api.get_series_by_imdb_id(imdb_id=i)["tvdb_id"]
         except TypeError:
-            series_name = tvtime_scraper.get_series_name_from_series_id(series_id=series_id)
-            tv_show = tvdb_api.get_series_by_name(series_name=series_name)
+            continue
+        tv_show = tvdb_api.get_series_by_tvdb_id(tvdb_id=tvdb_id)
         tv_shows.append(tv_show)
-        perc = green(f"[{(i / tot * 100):.1f} %]")
-        print(f"{perc} Show {series_id}: {tv_show['series_name']} retrieved.")
-        i += 1
+        # Display info about progress.
+        perc = green(f"[{(con / tot * 100):.1f} %]")
+        print(f"{perc} Show {i}: {tv_show['series_name']} retrieved.")
+        con += 1
     tv_shows_df = pd.DataFrame(tv_shows)
     return tv_shows_df
 
