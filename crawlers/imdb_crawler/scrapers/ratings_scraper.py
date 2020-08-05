@@ -25,4 +25,9 @@ class RatingsScraper:
         item["rating_45to100"] = divs[4].text
         item["rating_M_45to100"] = divs[9].text
         item["rating_F_45to100"] = divs[14].text
+
+        # Check for '-' values.
+        for key, value in item.items():
+            if value == '-':
+                item[key] = None
         return item

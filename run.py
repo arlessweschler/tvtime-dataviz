@@ -14,16 +14,18 @@ def create_imdb_csv():
     imdb_series_df = pd.read_sql_table("tv_series", "sqlite:///data/input/imdb.db")
 
     # Get a list of all the possible genres.
-    genres = set(" ".join(imdb_series_df["genres"].tolist()).split(" "))
+    genres = set(" ".join(imdb_series_df["genres"].dropna().tolist()).split(" "))
     genres = list(filter(lambda x: len(x) > 0, genres))
 
     # Create and fill columns in the dataframe.
     for i, row in imdb_series_df.iterrows():
         for genre in genres:
-            imdb_series_df.loc[i, f"genre_{genre.lower()}"] = int(genre in row["genres"])
+            if row["genres"] is not None:
+                imdb_series_df.loc[i, f"genre_{genre.lower()}"] = int(genre in row["genres"])
 
         # Change ep_length format.
-        imdb_series_df.loc[i, "ep_length"] = transform_length(row["ep_length"])
+        if row["ep_length"] is not None:
+            imdb_series_df.loc[i, "ep_length"] = transform_length(row["ep_length"])
     imdb_series_df = imdb_series_df.drop(columns=["genres"])
 
     imdb_series_df.to_csv("data/output/imdb_series.csv", index=False)
@@ -103,7 +105,7 @@ def update_my_ratings():
 
 
 # update_imdb_tv_series()
-# create_imdb_csv()
+create_imdb_csv()
 # update_tv_series()
 # update_seen_tv_episodes()
 # update_my_ratings()

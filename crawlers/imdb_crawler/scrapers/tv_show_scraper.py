@@ -16,24 +16,29 @@ class TvShowScraper:
             genres = [a.text for a in div.find_all('a')]
             item["genres"] = "".join(genres).strip()
         except IndexError:
-            item["genres"] = ""
+            item["genres"] = None
 
         # YEARS
         years = self.html.find("a", {"title": "See more release dates"}).text[:-2].split("(")[1].split('–')
         item["start_year"] = years[0]
         try:
-            item["end_year"] = years[1]
+            if len(years[1]) < 4:
+                item["end_year"] = None
+            else:
+                item["end_year"] = years[1]
         except IndexError:
-            item["end_year"] = ""
+            item["end_year"] = None
 
         # LENGTH
         try:
             item["ep_length"] = strip_html_tags(self.html.find("div", {"class": "subtext"}).find("time").text)
         except AttributeError:
-            item["ep_length"] = "None"
+            item["ep_length"] = None
 
         # N_SEASONS
         item["n_seasons"] = self.html.find("div", {"class": "seasons-and-year-nav"}).find('a').text
+        if item["n_seasons"] == "Unknown":
+            item["n_seasons"] = None
 
         # N_EPISODES
         item["n_episodes"] = self.html.find_all("span", {"class": "bp_sub_heading"})[-1].text.split(" ")[0]
@@ -44,7 +49,7 @@ class TvShowScraper:
             pop = strip_html_tags(pop)
             item["popularity_rank"] = pop.split(" ")[0].replace(',', '')
         except AttributeError:
-            item["popularity_rank"] = 0
+            item["popularity_rank"] = None
 
         # N_RATINGS
         item["n_ratings"] = self.html.find("div", {"class": "imdbRating"}).find('a').text.replace(',', '')
