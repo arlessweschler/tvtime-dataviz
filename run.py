@@ -76,7 +76,7 @@ def update_my_ratings():
     is_followed = user_tv_show_data_df["is_followed"] == 1
     followed_tv_shows_df = user_tv_show_data_df.loc[is_followed]
 
-    tv_series_df = pd.read_csv("data/output/tvdb_series.csv", index_col="tvdb_id")
+    tvdb_series_df = pd.read_csv("data/output/tvdb_series.csv", index_col="tvdb_id")
 
     # Create my_ratings csv file.
     try:
@@ -90,22 +90,22 @@ def update_my_ratings():
         if i not in list(my_ratings_df.index):
             try:
                 rating = pd.DataFrame({
-                    "tvdb_id": i,
-                    "imdb_id": tv_series_df.loc[i, "imdb_id"],
-                    "series_name": tv_series_df.loc[i, "series_name"],
-                    "my_rating": ""})
+                    "imdb_id": tvdb_series_df.loc[i, "imdb_id"],
+                    "series_name": tvdb_series_df.loc[i, "series_name"],
+                    "my_rating": None}, index=[i])
+                print(f"Adding {tvdb_series_df.loc[i, 'series_name']}")
             except KeyError:
+                print(f"Error: {i}")
                 rating = pd.DataFrame({
-                    "tvdb_id": [i],
-                    "imdb_id": i,
-                    "series_name": i,
-                    "my_rating": i})
-            my_ratings_df.append(rating)
+                    "imdb_id": "",
+                    "series_name": "",
+                    "my_rating": None}, index=[i])
+            my_ratings_df = my_ratings_df.append(rating)
     my_ratings_df.to_csv("data/input/my_ratings.csv")
 
 
 # update_imdb_tv_series()
-create_imdb_csv()
+# create_imdb_csv()
 # update_tv_series()
 # update_seen_tv_episodes()
-# update_my_ratings()
+update_my_ratings()
