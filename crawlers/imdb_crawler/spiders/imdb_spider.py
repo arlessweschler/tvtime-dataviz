@@ -16,7 +16,7 @@ class ImdbSpider(scrapy.Spider):
     tot_items = None
     items = 0
 
-    num_votes = 5000
+    num_votes = 2000
     release_date = 1989
     min_rating = 0.0
 

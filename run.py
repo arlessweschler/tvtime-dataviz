@@ -106,6 +106,6 @@ def update_my_ratings():
 
 # update_imdb_tv_series()
 # create_imdb_csv()
-# update_tv_series()
-# update_seen_tv_episodes()
-update_my_ratings()
+update_tv_series()
+update_seen_tv_episodes()
+# update_my_ratings()
