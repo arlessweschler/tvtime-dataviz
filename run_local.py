@@ -5,8 +5,8 @@ from helpers.helper import get_tv_shows, get_episodes
 from helpers.utility import transform_length
 
 
-def update_imdb_tv_series():
-    run_crawler()
+def update_imdb_tv_series(local=True):
+    run_crawler(local)
 
 
 def create_imdb_csv():
@@ -104,7 +104,7 @@ def update_my_ratings():
     my_ratings_df.to_csv("data/input/my_ratings.csv")
 
 
-update_imdb_tv_series()
+# update_imdb_tv_series(local=True)
 # create_imdb_csv()
 # update_tv_series()
 # update_seen_tv_episodes()

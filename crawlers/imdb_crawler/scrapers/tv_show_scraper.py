@@ -15,7 +15,7 @@ class TvShowScraper:
             div = self.html.find_all("div", {"class": "see-more inline canwrap"})[1]
             genres = [a.text for a in div.find_all('a')]
             item["genres"] = "".join(genres).strip()
-        except IndexError:
+        except Exception:
             item["genres"] = None
 
         # YEARS
@@ -26,13 +26,13 @@ class TvShowScraper:
                 item["end_year"] = None
             else:
                 item["end_year"] = years[1]
-        except IndexError:
+        except Exception:
             item["end_year"] = None
 
         # LENGTH
         try:
             item["ep_length"] = strip_html_tags(self.html.find("div", {"class": "subtext"}).find("time").text)
-        except AttributeError:
+        except Exception:
             item["ep_length"] = None
 
         # N_SEASONS
@@ -40,7 +40,7 @@ class TvShowScraper:
             item["n_seasons"] = self.html.find("div", {"class": "seasons-and-year-nav"}).find('a').text
             if item["n_seasons"] == "Unknown":
                 item["n_seasons"] = None
-        except AttributeError:
+        except Exception:
             item["n_seasons"] = None
 
         # N_EPISODES
@@ -51,7 +51,7 @@ class TvShowScraper:
             pop = self.html.find("div", {"class": "titleReviewBarSubItem"}).find("span").text
             pop = strip_html_tags(pop)
             item["popularity_rank"] = pop.split(" ")[0].replace(',', '')
-        except AttributeError:
+        except Exception:
             item["popularity_rank"] = None
 
         # N_RATINGS

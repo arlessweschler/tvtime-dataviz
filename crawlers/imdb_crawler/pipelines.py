@@ -10,6 +10,7 @@ class ImdbCrawlerPipeline:
         # Here, you get whatever value was passed through the "table" parameter
         settings = crawler.settings
         local = settings.get("local")
+        print(f"Local: {local}")
 
         # Instantiate the pipeline with your table
         return cls(local)

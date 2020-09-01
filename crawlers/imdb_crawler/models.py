@@ -9,9 +9,6 @@ Base = declarative_base()
 
 from decouple import config
 
-# Get data from .env file.
-db_password = config('db_password')
-
 
 def db_connect(local):
     """
@@ -19,7 +16,9 @@ def db_connect(local):
     Returns sqlalchemy engine instance
     """
     path = Path(os.getcwd())
-    if local:
+    if int(local) == 1:
+        # Get data from .env file.
+        db_password = config('db_password')
         engine = create_engine(f"postgres+psycopg2://postgres:{db_password}@localhost:5432/tv_series")
     else:
         database_url = os.environ['DATABASE_URL']

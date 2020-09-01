@@ -24,7 +24,7 @@ class TvSeriesScraper:
     def get_next_page(self):
         try:
             url = self.html.find("a", {"class": "next-page"})["href"]
-        except TypeError:
+        except Exception:
             url = None
         return url
 
