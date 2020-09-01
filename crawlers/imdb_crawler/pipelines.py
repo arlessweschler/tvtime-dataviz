@@ -5,12 +5,21 @@ from helpers.printer import green
 
 
 class ImdbCrawlerPipeline:
-    def __init__(self):
+    @classmethod
+    def from_crawler(cls, crawler):
+        # Here, you get whatever value was passed through the "table" parameter
+        settings = crawler.settings
+        local = settings.get("local")
+
+        # Instantiate the pipeline with your table
+        return cls(local)
+
+    def __init__(self, local):
         """
         Initializes database connection and sessionmaker
         Creates tables
         """
-        engine = db_connect()
+        engine = db_connect(local)
         create_table(engine)
         self.Session = sessionmaker(bind=engine)
 
