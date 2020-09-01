@@ -1,17 +1,15 @@
 import pandas as pd
 
-from crawlers.run_crawler import run_crawler
+from crawlers.imdb_crawler.models import db_connect
 from helpers.helper import get_tv_shows, get_episodes
 from helpers.utility import transform_length
 
 
-def update_imdb_tv_series(local=True):
-    run_crawler(local)
-
-
-def create_imdb_csv():
-    # Get data from IMDb crawler database.
-    imdb_series_df = pd.read_sql_table("tv_series", "sqlite:///data/input/imdb.db")
+def refine_db(local):
+    # Get data from IMDb database.
+    engine = db_connect(local)
+    print("Refining database...")
+    imdb_series_df = pd.read_sql_query('SELECT * FROM imdb', con=engine, index_col="id")
 
     # Get a list of all the possible genres.
     genres = set(" ".join(imdb_series_df["genres"].dropna().tolist()).split(" "))
@@ -28,13 +26,17 @@ def create_imdb_csv():
             imdb_series_df.loc[i, "ep_length"] = transform_length(row["ep_length"])
     imdb_series_df = imdb_series_df.drop(columns=["genres"])
 
-    imdb_series_df.to_csv("data/output/imdb_series.csv", index=False)
+    # Export the dataframe to the database.
+    imdb_series_df.to_sql('imdb', engine, if_exists='replace')
 
 
-def update_tv_series():
-    # Read the source file for TV series found in IMDb.
-    imdb_series_df = pd.read_csv("data/output/imdb_series.csv", index_col="id")
+def improve_db(local):
+    # Get data from IMDb database.
+    engine = db_connect(local)
+    print("Improving database...")
+    imdb_series_df = pd.read_sql_query('SELECT * FROM imdb', con=engine, index_col="id")
 
+    # Use TVDb APIs to enrich IMDb results.
     tv_series_df = get_tv_shows(imdb_series_df)
 
     # Encoding of genres.
@@ -47,7 +49,8 @@ def update_tv_series():
             tv_series_df.loc[i, f"genre_{genre.lower()}"] = int(genre in row["genres"])
     tv_series_df = tv_series_df.drop(columns=["genres"])
 
-    tv_series_df.to_csv("data/output/tvdb_series.csv", index=False)
+    # Export the dataframe to the database.
+    tv_series_df.to_sql('tvdb', engine, if_exists='replace')
 
 
 def update_seen_tv_episodes():

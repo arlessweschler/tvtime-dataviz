@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-from crawlers.imdb_crawler.items import TvSeriesItem
+from crawlers.imdb_crawler.items import ImdbItem
 
 
 class TvSeriesScraper:
@@ -13,7 +13,7 @@ class TvSeriesScraper:
         tot = int(progress.split(" ")[2])
         infos = []
         for div in divs:
-            tv_series_item = TvSeriesItem()
+            tv_series_item = ImdbItem()
             tv_series_item["name"] = div.find('a').text
             tv_series_item["id"] = div.find('a')["href"].split('/')[2]
 

@@ -4,41 +4,49 @@ from threading import Thread
 from colorama import Fore, Style
 from flask import Flask, request, make_response, jsonify
 
-from crawlers.run_crawler import run_crawler
+from crawlers.run_crawler import create_imdb_db
 from helpers.utility import get_time
-from run_local import update_imdb_tv_series, update_tv_series, update_seen_tv_episodes, update_my_ratings, \
-    create_imdb_csv
+from run_local import improve_db, update_seen_tv_episodes, update_my_ratings, \
+    refine_db
 
 app = Flask(__name__)
 
 
-def update():
-    update_imdb_tv_series(local=False)
-    # create_imdb_csv()
+def update_i(local):
+    create_imdb_db(local)
+    refine_db(local)
+    improve_db(local)
     # update_tv_series()
     # update_seen_tv_episodes()
     # update_my_ratings()
 
 
-# default route
+def update_t(local):
+    improve_db(local)
+
+
+# TODO: Display predictions.
 @app.route('/')
 def index():
-    return 'Hello World!'
+    return 'Predictions.'
 
 
-# function for responses
-def results():
-    print("-" * 20)
-    print(f"{Fore.CYAN}{get_time()} [SERVER] New request received.{Style.RESET_ALL}")
-
-
-# create a route for webhook
-@app.route('/webhook', methods=['GET', 'POST'])
-def webhook():
-    print("hook")
-    process = Process(target=update)
+# Updates the IMDb database.
+@app.route('/update-imdb', methods=['GET', 'POST'])
+def update_imdb():
+    print("Updating IMDb.")
+    process = Process(target=update_i, args=(False,))
     process.start()
-    return "Hello"
+    return "Updating IMDb database..."
+
+
+# Updates the TVDb csv file.
+@app.route('/update-tvdb', methods=['GET', 'POST'])
+def update_tvdb():
+    print("Updating TVDb.")
+    process = Process(target=update_t, args=(False,))
+    process.start()
+    return "Updating TVDb database..."
 
 
 # run the app

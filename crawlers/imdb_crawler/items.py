@@ -8,7 +8,7 @@
 from scrapy import Item, Field
 
 
-class TvSeriesItem(Item):
+class ImdbItem(Item):
     id = Field()
     name = Field()
     type = Field()

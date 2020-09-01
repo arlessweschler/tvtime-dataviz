@@ -32,7 +32,7 @@ def create_table(engine):
 
 
 class TvSeries(Base):
-    __tablename__ = "tv_series"
+    __tablename__ = "imdb"
 
     id = Column(String, primary_key=True)
     name = Column('name', String)
