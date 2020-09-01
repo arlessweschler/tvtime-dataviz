@@ -36,8 +36,11 @@ class TvShowScraper:
             item["ep_length"] = None
 
         # N_SEASONS
-        item["n_seasons"] = self.html.find("div", {"class": "seasons-and-year-nav"}).find('a').text
-        if item["n_seasons"] == "Unknown":
+        try:
+            item["n_seasons"] = self.html.find("div", {"class": "seasons-and-year-nav"}).find('a').text
+            if item["n_seasons"] == "Unknown":
+                item["n_seasons"] = None
+        except AttributeError:
             item["n_seasons"] = None
 
         # N_EPISODES
