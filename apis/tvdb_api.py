@@ -48,6 +48,9 @@ def get_series_by_tvdb_id(tvdb_id):
     endpoint = f"https://api.thetvdb.com/series/{tvdb_id}"
     response = requests.get(endpoint, headers=headers).content
     data = json.loads(response).get("data")
+    # Check that season and runtime are not empty.
+    data["season"] = 1 if data["season"] == '' else data["season"]
+    data["runtime"] = None if data["runtime"] == '' else data["runtime"]
     tv_show = {
         "tvdb_id": tvdb_id,
         "series_name": data["seriesName"],

@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-from helpers.utility import strip_html_tags
+from helpers.utility import strip_html_tags, transform_length
 
 
 class TvShowScraper:
@@ -32,6 +32,7 @@ class TvShowScraper:
         # LENGTH
         try:
             item["ep_length"] = strip_html_tags(self.html.find("div", {"class": "subtext"}).find("time").text)
+            item['ep_length'] = transform_length(item["ep_length"])
         except Exception:
             item["ep_length"] = None
 

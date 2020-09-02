@@ -1,28 +1,27 @@
 from multiprocessing.dummy import Process
 
 from flask import Flask
+from decouple import config
 
 from crawlers.run_crawler import create_imdb_db
 from run_local import improve_db, update_my_ratings, \
     refine_db, update_seen_tv_episodes
+from train_model import train_model
 
 app = Flask(__name__)
 
-LOCAL = False
+# Recognize if running in local on not.
+try:
+    db_password = config('db_password')
+    LOCAL = True
+except Exception:
+    LOCAL = False
 
 
 def update_i(local):
     create_imdb_db(local)
     refine_db(local)
     improve_db(local)
-
-
-def update_r(local):
-    update_my_ratings(local)
-
-
-def update_e(local):
-    update_seen_tv_episodes(local)
 
 
 # TODO: Display predictions.
@@ -44,7 +43,7 @@ def update_imdb():
 @app.route('/rate', methods=['GET', 'POST'])
 def update_ratings():
     print("Updating ratings.")
-    process = Process(target=update_r, args=(LOCAL,))
+    process = Process(target=update_my_ratings, args=(LOCAL,))
     process.start()
     return "Updating my ratings..."
 
@@ -53,9 +52,18 @@ def update_ratings():
 @app.route('/episodes', methods=['GET', 'POST'])
 def update_episodes():
     print("Updating episodes.")
-    process = Process(target=update_e, args=(LOCAL,))
+    process = Process(target=update_seen_tv_episodes, args=(LOCAL,))
     process.start()
     return "Updating my episodes..."
+
+
+# Updates the IMDb database.
+@app.route('/train', methods=['GET', 'POST'])
+def train():
+    print("Training model.")
+    process = Process(target=train_model, args=(LOCAL,))
+    process.start()
+    return "Training the model..."
 
 
 # run the app

@@ -24,9 +24,6 @@ def refine_db(local):
             if row["genres"] is not None:
                 imdb_series_df.loc[i, f"genre_{genre.lower()}"] = int(genre in row["genres"])
 
-        # Change ep_length format.
-        if row["ep_length"] is not None:
-            imdb_series_df.loc[i, "ep_length"] = transform_length(row["ep_length"])
     imdb_series_df = imdb_series_df.drop(columns=["genres"])
 
     # Export the dataframe to the database.
@@ -55,7 +52,7 @@ def improve_db(local):
 
     # Export the dataframe to the database.
     print("Saving database to tvdb table.")
-    tv_series_df.to_sql('tvdb', engine, if_exists='replace')
+    tv_series_df.to_sql('tvdb', engine, if_exists='replace', index=False)
 
 
 def update_my_ratings(local):
