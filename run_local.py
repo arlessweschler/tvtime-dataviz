@@ -59,16 +59,15 @@ def improve_db(local):
 
 
 def update_my_ratings(local):
-    # Read the source file for TV series found in TV Time.
+    # Get data from tv_series database.
     engine = db_connect(local)
     tvdb_series_df = pd.read_sql_query('SELECT * FROM tvdb', con=engine, index_col="tvdb_id")
+    my_ratings_df = pd.read_sql_query('SELECT * FROM my_ratings', con=engine, index_col="tvdb_id")
 
+    # Read user_tv_show_data.csv from Google Drive.
     dwn_url = 'https://drive.google.com/uc?export=download&id='
     id_user_show = '1EfCJWOkRlAagAAkVLBucqeuXlohCQLt0'
-    id_my_ratings = '1JQjgo091UeSe-QiAo1turIniipyJqVzb'
-
     user_tv_show_data_df = pd.read_csv(StringIO(requests.get(dwn_url + id_user_show).text), index_col="tv_show_id")
-    my_ratings_df = pd.read_csv(StringIO(requests.get(dwn_url + id_my_ratings).text), index_col="tvdb_id")
 
     # Keep only followed shows.
     is_followed = user_tv_show_data_df["is_followed"] == 1
@@ -97,19 +96,27 @@ def update_my_ratings(local):
     my_ratings_df.to_sql('my_ratings', engine, if_exists='replace')
 
 
-def update_seen_tv_episodes():
-    # Read the source file for episodes seen from TvTime app.
-    seen_episode_df = pd.read_csv("data/input/seen_episode.csv")
+def update_seen_tv_episodes(local):
+    # Read seen_episode.csv from Google Drive.
+    dwn_url = 'https://drive.google.com/uc?export=download&id='
+    id_seen_episode = '14rdbDyQzawc_Xh49M5Nvgenm2njk8Rx4'
+    seen_episode_df = pd.read_csv(StringIO(requests.get(dwn_url + id_seen_episode).text))
 
     # Create csv file containing episodes.
     try:
-        tv_episodes_df = pd.read_csv("data/output/seen_tv_episodes.csv")
+        # Get data from tv_series database.
+        engine = db_connect(local)
+        tv_episodes_df = pd.read_sql_query('SELECT * FROM tv_episodes', con=engine)
+
         # Collect info about new episodes.
         need_info = seen_episode_df["episode_id"].map(lambda x: x not in list(tv_episodes_df["tvdb_id"]))
         new_tv_episodes_df = get_episodes(seen_episode_df.loc[need_info])
         tv_episodes_df = tv_episodes_df.append(new_tv_episodes_df)
-    except FileNotFoundError:
+    except Exception:
         # Collect info all episodes.
         tv_episodes_df = get_episodes(seen_episode_df)
 
-    tv_episodes_df.to_csv("data/output/seen_tv_episodes.csv")
+    # Export the dataframe to the database.
+    engine = db_connect(local)
+    print("Saving database to tv_episodes table.")
+    tv_episodes_df.to_sql('tv_episodes', engine, if_exists='replace')

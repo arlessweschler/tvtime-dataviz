@@ -4,7 +4,7 @@ from flask import Flask
 
 from crawlers.run_crawler import create_imdb_db
 from run_local import improve_db, update_my_ratings, \
-    refine_db
+    refine_db, update_seen_tv_episodes
 
 app = Flask(__name__)
 
@@ -19,6 +19,10 @@ def update_i(local):
 
 def update_r(local):
     update_my_ratings(local)
+
+
+def update_e(local):
+    update_seen_tv_episodes(local)
 
 
 # TODO: Display predictions.
@@ -43,6 +47,15 @@ def update_ratings():
     process = Process(target=update_r, args=(LOCAL,))
     process.start()
     return "Updating my ratings..."
+
+
+# Updates the IMDb database.
+@app.route('/episodes', methods=['GET', 'POST'])
+def update_episodes():
+    print("Updating episodes.")
+    process = Process(target=update_e, args=(LOCAL,))
+    process.start()
+    return "Updating my episodes..."
 
 
 # run the app
