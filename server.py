@@ -61,9 +61,7 @@ def update_episodes():
 @app.route('/train', methods=['GET', 'POST'])
 def train():
     print("Training model.")
-    process = Process(target=train_model, args=(LOCAL,))
-    process.start()
-    return "Training the model..."
+    return train_model(LOCAL)
 
 
 # run the app

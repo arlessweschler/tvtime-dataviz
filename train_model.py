@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import textwrap
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
@@ -72,6 +73,20 @@ def train_model(local):
     predictions_df = predictions_df.sort_values(by="prediction", ascending=False)[["name", "prediction", "overview"]]
 
     export_predictions(local, predictions_df)
+
+    stringa = '<table>'
+    for i, row in predictions_df.iloc[0:20, :].iterrows():
+        try:
+            overview = textwrap.shorten(row["overview"], width=170, placeholder="...")
+        except AttributeError:
+            overview = ''
+        stringa += f'<tr>' \
+                   f'<td>{row["name"]}</td>' \
+                   f'<td>{row["prediction"]}</td>' \
+                   f'<td>{overview}</td>' \
+                   f'</tr>'
+    stringa += '</table>'
+    return stringa
 
 
 def create_dataset(local):
