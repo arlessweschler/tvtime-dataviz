@@ -39,7 +39,7 @@ def update_imdb():
 
 # Updates the IMDb database.
 @app.route('/rate', methods=['GET', 'POST'])
-def update_imdb():
+def update_ratings():
     print("Updating ratings.")
     process = Process(target=update_r, args=(True,))
     process.start()
