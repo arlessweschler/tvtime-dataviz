@@ -1,15 +1,14 @@
 from multiprocessing.dummy import Process
-from threading import Thread
 
-from colorama import Fore, Style
-from flask import Flask, request, make_response, jsonify
+from flask import Flask
 
 from crawlers.run_crawler import create_imdb_db
-from helpers.utility import get_time
-from run_local import improve_db, update_seen_tv_episodes, update_my_ratings, \
+from run_local import improve_db, update_my_ratings, \
     refine_db
 
 app = Flask(__name__)
+
+LOCAL = False
 
 
 def update_i(local):
@@ -32,7 +31,7 @@ def index():
 @app.route('/update-imdb', methods=['GET', 'POST'])
 def update_imdb():
     print("Updating IMDb.")
-    process = Process(target=update_i, args=(True,))
+    process = Process(target=update_i, args=(LOCAL,))
     process.start()
     return "Updating IMDb database..."
 
@@ -41,7 +40,7 @@ def update_imdb():
 @app.route('/rate', methods=['GET', 'POST'])
 def update_ratings():
     print("Updating ratings.")
-    process = Process(target=update_r, args=(True,))
+    process = Process(target=update_r, args=(LOCAL,))
     process.start()
     return "Updating my ratings..."
 
