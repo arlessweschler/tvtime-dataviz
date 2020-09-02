@@ -16,13 +16,10 @@ def update_i(local):
     create_imdb_db(local)
     refine_db(local)
     improve_db(local)
-    # update_tv_series()
-    # update_seen_tv_episodes()
-    # update_my_ratings()
 
 
-def update_t(local):
-    improve_db(local)
+def update_r(local):
+    update_my_ratings(local)
 
 
 # TODO: Display predictions.
@@ -35,18 +32,18 @@ def index():
 @app.route('/update-imdb', methods=['GET', 'POST'])
 def update_imdb():
     print("Updating IMDb.")
-    process = Process(target=update_i, args=(False,))
+    process = Process(target=update_i, args=(True,))
     process.start()
     return "Updating IMDb database..."
 
 
-# Updates the TVDb csv file.
-@app.route('/update-tvdb', methods=['GET', 'POST'])
-def update_tvdb():
-    print("Updating TVDb.")
-    process = Process(target=update_t, args=(False,))
+# Updates the IMDb database.
+@app.route('/rate', methods=['GET', 'POST'])
+def update_imdb():
+    print("Updating ratings.")
+    process = Process(target=update_r, args=(True,))
     process.start()
-    return "Updating TVDb database..."
+    return "Updating my ratings..."
 
 
 # run the app

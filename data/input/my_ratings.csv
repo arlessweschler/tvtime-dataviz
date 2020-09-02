@@ -1,4 +1,4 @@
-tvdb_id,imdb_id,series_name,my_rating
+,imdb_id,series_name,my_rating
 70533,tt0098936,Twin Peaks,7.0
 72023,tt0348914,Deadwood,8.0
 72173,tt0367279,Arrested Development,7.0
@@ -145,3 +145,6 @@ tvdb_id,imdb_id,series_name,my_rating
 340234,tt5363918,Disenchantment,3.0
 347721,tt8420184,The Last Dance,8.0
 358211,tt7908628,What We Do in the Shadows,8.0
+75340,,,
+82276,tt1020116,Boris,
+329358,,,
