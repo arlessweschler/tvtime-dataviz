@@ -1,9 +1,6 @@
-import csv
 from io import StringIO
-import urllib
 
 import pandas as pd
-import gdown
 import requests
 
 from crawlers.imdb_crawler.models import db_connect
