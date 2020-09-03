@@ -1,13 +1,12 @@
 import numpy as np
 import pandas as pd
-import textwrap
 from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.impute import SimpleImputer
+from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler, MinMaxScaler
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error, r2_score
 from xgboost import XGBRegressor
 
 from crawlers.imdb_crawler.models import db_connect
@@ -73,25 +72,9 @@ class Model:
         predictions_df = predictions_df.sort_values(by="prediction", ascending=False)[
             ["name", "prediction", "overview"]].round(decimals=2)
 
-        # Create table to display in the page.
-        stringa = '<table>'
-        for i, row in predictions_df.iloc[0:20, :].iterrows():
-            try:
-                overview = textwrap.shorten(row["overview"], width=170, placeholder="...")
-            except AttributeError:
-                overview = ''
-            stringa += f'<tr>' \
-                       f'<td>{row["name"]}</td>' \
-                       f'<td>{row["prediction"]:.2f}</td>' \
-                       f'<td>{overview}</td>' \
-                       f'</tr>'
-        stringa += '</table>'
-
         # Save predictions to tvdb table.
         self.tvdb_df['prediction'] = predictions_df["prediction"]
         self.save_predictions(local)
-
-        return stringa
 
     def create_dataset(self, local):
         # Import datasets.

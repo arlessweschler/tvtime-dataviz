@@ -4,8 +4,7 @@ from flask import Flask
 from decouple import config
 
 from crawlers.run_crawler import create_imdb_db
-from run_local import improve_db, update_my_ratings, \
-    refine_db, update_seen_tv_episodes
+from run_local import improve_db, update_my_ratings, refine_db, update_seen_tv_episodes, show_predictions
 
 from train_model import Model
 
@@ -22,13 +21,12 @@ except Exception:
 def update_i(local):
     create_imdb_db(local)
     refine_db(local)
-    improve_db(local)
 
 
 # TODO: Display predictions.
 @app.route('/')
 def index():
-    return 'Predictions.'
+    return show_predictions(LOCAL)
 
 
 # Updates the IMDb database.
@@ -40,8 +38,17 @@ def update_imdb():
     return "Updating IMDb database..."
 
 
-# Updates the IMDb database.
-@app.route('/rate', methods=['GET', 'POST'])
+# Updates the TVDb database.
+@app.route('/update-tvdb', methods=['GET', 'POST'])
+def update_tvdb():
+    print("Updating TVDb.")
+    process = Process(target=improve_db, args=(LOCAL,))
+    process.start()
+    return "Updating TVDb database..."
+
+
+# Updates my ratings.
+@app.route('/update-ratings', methods=['GET', 'POST'])
 def update_ratings():
     print("Updating ratings.")
     process = Process(target=update_my_ratings, args=(LOCAL,))
@@ -49,20 +56,24 @@ def update_ratings():
     return "Updating my ratings..."
 
 
-# Updates the IMDb database.
-@app.route('/episodes', methods=['GET', 'POST'])
+# Updates the tv episodes, only locally.
+@app.route('/update-episodes', methods=['GET', 'POST'])
 def update_episodes():
-    print("Updating episodes.")
-    process = Process(target=update_seen_tv_episodes, args=(LOCAL,))
-    process.start()
-    return "Updating my episodes..."
+    if LOCAL:
+        print("Updating episodes.")
+        process = Process(target=update_seen_tv_episodes, args=(LOCAL,))
+        process.start()
+        return "Updating my episodes..."
+    else:
+        return 'Cannot perform this operation on the server!'
 
 
-# Updates the IMDb database.
+# Train model and update predictions.
 @app.route('/train', methods=['GET', 'POST'])
 def train():
     print("Training model.")
-    return Model().train_model(LOCAL)
+    Model().train_model(LOCAL)
+    return "Model trained, predictions are available on <a href='/'>homepage</a>."
 
 
 # run the app

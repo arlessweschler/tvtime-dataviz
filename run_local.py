@@ -1,3 +1,4 @@
+import textwrap
 from io import StringIO
 
 import pandas as pd
@@ -116,3 +117,28 @@ def update_seen_tv_episodes(local):
     engine = db_connect(local)
     print("Saving database to tv_episodes table.")
     tv_episodes_df.to_sql('tv_episodes', engine, if_exists='replace')
+
+
+def show_predictions(local):
+    # Get data from tvdb database.
+    engine = db_connect(local)
+    tvdb_series_df = pd.read_sql_query('SELECT * FROM tvdb', con=engine, index_col="tvdb_id")
+
+    # Sort predictions.
+    tvdb_series_df.sort_values(by='prediction', ascending=False, inplace=True)
+
+    # Create table to display in the page.
+    stringa = '<table>'
+    for i, row in tvdb_series_df.iloc[0:20, :].iterrows():
+        try:
+            overview = textwrap.shorten(row["overview"], width=170, placeholder="...")
+        except AttributeError:
+            overview = ''
+        stringa += f'<tr>' \
+                   f'<td>{row["series_name"]}</td>' \
+                   f'<td>{row["prediction"]:.2f}</td>' \
+                   f'<td>{overview}</td>' \
+                   f'</tr>'
+    stringa += '</table>'
+
+    return stringa
