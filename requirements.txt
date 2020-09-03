@@ -51,3 +51,5 @@ w3lib==1.22.0
 Werkzeug==1.0.1
 xgboost==1.2.0
 zope.interface==5.1.0
+
+gunicorn
