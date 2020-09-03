@@ -8,214 +8,221 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler, MinMaxScaler
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
-
-try:
-    from xgboost import XGBRegressor
-except:
-    pass
+from xgboost import XGBRegressor
 
 from crawlers.imdb_crawler.models import db_connect
 
 
-def train_model(local):
-    tv_df = create_dataset(local)
-    main_df = tv_df.copy()
-    tv_df = remove_useless_features(tv_df)
+class Model:
+    imdb_df = None
+    tvdb_df = None
+    my_ratings_df = None
+    tv_df = None
 
-    X, y, X_train, X_valid, y_train, y_valid, test_df = split_data(tv_df)
+    def train_model(self, local):
+        self.create_dataset(local)
+        main_df = self.tv_df.copy()
+        self.tv_df = self.remove_useless_features()
 
-    transformer = create_transformer(tv_df=tv_df)
+        X, y, X_train, X_valid, y_train, y_valid, test_df = self.split_data()
 
-    tr_X_train = transformer.fit_transform(X_train)
-    tr_X_valid = transformer.transform(X_valid)
+        transformer = self.create_transformer()
 
-    num1 = np.sum(np.isnan(tr_X_train))
-    num2 = X_train.isna().sum()
+        tr_X_train = transformer.fit_transform(X_train)
+        tr_X_valid = transformer.transform(X_valid)
 
-    # Fit model.
-    try:
-        model = XGBRegressor(n_estimators=500, random_state=17)
-        model.fit(tr_X_train, y_train, early_stopping_rounds=5, eval_set=[(tr_X_valid, y_valid)], verbose=False)
-    except NameError:
-        model = RandomForestRegressor(random_state=17)
-        model.fit(tr_X_train, y_train)
-
-    # Predict results for validation set.
-    valid_predictions = model.predict(tr_X_valid)
-
-    # Display results comparing them to real personal ratings.
-    valid_results = pd.DataFrame(data=dict(prediction=valid_predictions, real=y_valid.to_list(),
-                                           difference=valid_predictions - y_valid.to_list()),
-                                 index=main_df.loc[y_valid.index, "name"])
-    print(valid_results.sort_values(by="difference", ascending=False))
-
-    print(f"MRSE: {np.sqrt(mean_squared_error(y_valid, valid_predictions)):.2f}")
-    print(f"R2 score: {r2_score(y_valid, valid_predictions):.2f}")
-
-    # Fit model on the whole training data.
-    tr_X = transformer.fit_transform(X)
-    try:
-        model = XGBRegressor(n_estimators=75)
-    except NameError:
-        pass
-    model.fit(tr_X, y)
-
-    # Predict unseen ratings of unseen tv series.
-    tr_X_test = transformer.transform(test_df)
-    test_predictions = model.predict(tr_X_test)
-
-    # Display best tv series to watch, removing documentary because I do not care about them.
-    predictions_df = main_df.copy()
-    predictions_df["prediction"] = pd.Series(data=test_predictions, index=test_df.index)
-    # Remove documentaries.
-    predictions_df = predictions_df[predictions_df["genre_documentary"] == 0]
-
-    predictions_df = predictions_df.sort_values(by="prediction", ascending=False)[["name", "prediction", "overview"]]
-
-    export_predictions(local, predictions_df)
-
-    stringa = '<table>'
-    for i, row in predictions_df.iloc[0:20, :].iterrows():
+        # Fit model.
         try:
-            overview = textwrap.shorten(row["overview"], width=170, placeholder="...")
-        except AttributeError:
-            overview = ''
-        stringa += f'<tr>' \
-                   f'<td>{row["name"]}</td>' \
-                   f'<td>{row["prediction"]}</td>' \
-                   f'<td>{overview}</td>' \
-                   f'</tr>'
-    stringa += '</table>'
-    return stringa
+            model = XGBRegressor(n_estimators=500, random_state=17)
+            model.fit(tr_X_train, y_train, early_stopping_rounds=5, eval_set=[(tr_X_valid, y_valid)], verbose=False)
+        except NameError:
+            model = RandomForestRegressor(random_state=17)
+            model.fit(tr_X_train, y_train)
 
+        # Predict results for validation set.
+        valid_predictions = model.predict(tr_X_valid)
 
-def create_dataset(local):
-    # Import datasets.
-    engine = db_connect(local)
-    tvdb_series_df = pd.read_sql_query('SELECT * FROM tvdb', con=engine, index_col="imdb_id")
-    my_ratings_df = pd.read_sql_query('SELECT * FROM my_ratings', con=engine, index_col="imdb_id")
-    imdb_series_df = pd.read_sql_query('SELECT * FROM imdb', con=engine, index_col="id")
+        # Display results comparing them to real personal ratings.
+        valid_results = pd.DataFrame(data=dict(prediction=valid_predictions, real=y_valid.to_list(),
+                                               difference=valid_predictions - y_valid.to_list()),
+                                     index=main_df.loc[y_valid.index, "name"])
+        print(valid_results.sort_values(by="difference", ascending=False).round(decimals=2))
 
-    # Merge datasets together.
-    cols_to_use = tvdb_series_df.columns.difference(imdb_series_df.columns)
-    df1 = pd.merge(imdb_series_df, tvdb_series_df[cols_to_use], how="outer", left_index=True, right_index=True)
+        print(f"MRSE: {np.sqrt(mean_squared_error(y_valid, valid_predictions)):.2f}")
+        print(f"R2 score: {r2_score(y_valid, valid_predictions):.2f}")
 
-    cols_to_use = my_ratings_df.columns.difference(df1.columns)
-    tv_df = pd.merge(df1, my_ratings_df[cols_to_use], how="outer", left_index=True, right_index=True)
+        # Fit model on the whole training data.
+        tr_X = transformer.fit_transform(X)
+        try:
+            model = XGBRegressor(n_estimators=75)
+        except NameError:
+            pass
+        model.fit(tr_X, y)
 
-    print("Dataset created.")
-    return tv_df
+        # Predict unseen ratings of unseen tv series.
+        tr_X_test = transformer.transform(test_df)
+        test_predictions = model.predict(tr_X_test)
 
+        # Display best tv series to watch, removing documentary because I do not care about them.
+        predictions_df = main_df.copy().dropna(how='all')
+        predictions_df["prediction"] = pd.Series(data=test_predictions, index=test_df.index)
+        # Remove documentaries.
+        predictions_df = predictions_df[predictions_df["genre_documentary"] == 0]
 
-def remove_useless_features(tv_df):
-    # Get features correlation.
-    corr_matrix = tv_df.corr()
+        # Sort and round numbers.
+        predictions_df = predictions_df.sort_values(by="prediction", ascending=False)[
+            ["name", "prediction", "overview"]].round(decimals=2)
 
-    # Select upper triangle of correlation matrix.
-    upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(np.bool))
+        # Create table to display in the page.
+        stringa = '<table>'
+        for i, row in predictions_df.iloc[0:20, :].iterrows():
+            try:
+                overview = textwrap.shorten(row["overview"], width=170, placeholder="...")
+            except AttributeError:
+                overview = ''
+            stringa += f'<tr>' \
+                       f'<td>{row["name"]}</td>' \
+                       f'<td>{row["prediction"]:.2f}</td>' \
+                       f'<td>{overview}</td>' \
+                       f'</tr>'
+        stringa += '</table>'
 
-    # Find features with correlation greater than 0.95.
-    suspicious_features = upper[upper > 0.95]
-    suspicious_features = suspicious_features.dropna(axis=0, how="all").dropna(axis=1, how="all")
+        # Save predictions to tvdb table.
+        self.tvdb_df['prediction'] = predictions_df["prediction"]
+        self.save_predictions(local)
 
-    # Rename some columns.
-    tv_df.rename(columns={
-        "genre_arts": "genre_martial_arts",
-        "genre_fiction": "genre_science_fiction",
-        "genre_interest": "genre_special_interest"
-    })
+        return stringa
 
-    # Remove useless columns.
-    cols_to_remove = ["name", "genre_martial", "genre_science", "genre_special", "genre_", "series_name", "banner",
-                      "fanart", "overview", "poster", "first_aired", "tvdb_id"]
-    tv_df.drop(cols_to_remove, axis=1, inplace=True)
+    def create_dataset(self, local):
+        # Import datasets.
+        engine = db_connect(local)
+        self.imdb_df = pd.read_sql_query('SELECT * FROM imdb', con=engine, index_col="id")
+        self.tvdb_df = pd.read_sql_query('SELECT * FROM tvdb', con=engine, index_col="imdb_id")
+        self.my_ratings_df = pd.read_sql_query('SELECT * FROM my_ratings', con=engine, index_col="imdb_id")
 
-    # Identify popular networks.
-    popular_networks = tv_df.groupby(by="network").count().sort_values(by="my_rating", ascending=False)[:20].index.to_list()
-    # Change network value of unpopular networks as "unpopular".
-    tv_df["network"] = tv_df["network"].map(lambda x: x if x in popular_networks else "unpopular")
+        # Merge datasets together.
+        cols_to_use = self.tvdb_df.columns.difference(self.imdb_df.columns)
+        df1 = pd.merge(self.imdb_df, self.tvdb_df[cols_to_use], how="outer", left_index=True, right_index=True)
 
-    return tv_df
+        cols_to_use = self.my_ratings_df.columns.difference(df1.columns)
+        self.tv_df = pd.merge(df1, self.my_ratings_df[cols_to_use], how="outer", left_index=True, right_index=True)
 
+        # Drop prediction feature.
+        try:
+            self.tv_df.drop('prediction', axis=1, inplace=True)
+        except:
+            pass
 
-def split_data(tv_df):
-    # Split training set and test set.
-    train_df = tv_df.dropna(axis=0, subset=["my_rating"])
+        print("Dataset created.")
 
-    test_df = tv_df[tv_df["my_rating"].isna()].drop("my_rating", axis=1)
-    test_df = test_df[test_df["type"].notna()]
+    def remove_useless_features(self):
+        # Get features correlation.
+        corr_matrix = self.tv_df.corr()
 
-    X = train_df.drop(["my_rating"], axis=1)
-    y = train_df["my_rating"]
+        # Select upper triangle of correlation matrix.
+        upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(np.bool))
 
-    # Break off validation set from training data.
-    X_train, X_valid, y_train, y_valid = train_test_split(X, y, train_size=0.8, test_size=0.2, random_state=0)
+        # Find features with correlation greater than 0.95.
+        suspicious_features = upper[upper > 0.95]
+        suspicious_features = suspicious_features.dropna(axis=0, how="all").dropna(axis=1, how="all")
 
-    return X, y, X_train, X_valid, y_train, y_valid, test_df
+        # Rename some columns.
+        self.tv_df.rename(columns={
+            "genre_arts": "genre_martial_arts",
+            "genre_fiction": "genre_science_fiction",
+            "genre_interest": "genre_special_interest"
+        })
 
+        # Remove useless columns.
+        cols_to_remove = ["name", "genre_martial", "genre_science", "genre_special", "genre_", "series_name", "banner",
+                          "fanart", "overview", "poster", "first_aired", "tvdb_id"]
+        self.tv_df.drop(cols_to_remove, axis=1, inplace=True)
 
-def create_transformer(tv_df):
-    year_pipe = make_pipeline(
-        SimpleImputer(strategy="constant", fill_value=tv_df["start_year"].dropna().max()),
-        StandardScaler())
+        # Identify popular networks.
+        popular_networks = self.tv_df.groupby(by="network").count().sort_values(by="my_rating", ascending=False)[
+                           :20].index.to_list()
+        # Change network value of unpopular networks as "unpopular".
+        self.tv_df["network"] = self.tv_df["network"].map(lambda x: x if x in popular_networks else "unpopular")
 
-    genre_pipe = make_pipeline(
-        SimpleImputer(strategy="constant", fill_value=0))
+        return self.tv_df
 
-    string_pipe = make_pipeline(
-        SimpleImputer(strategy="most_frequent"),
-        OrdinalEncoder())
+    def split_data(self):
+        # Split training set and test set.
+        train_df = self.tv_df.dropna(axis=0, subset=["my_rating"])
 
-    cat_pipe = make_pipeline(
-        SimpleImputer(strategy="constant", fill_value="unknown"),
-        OneHotEncoder(categories=[np.append(tv_df["rating"].unique(), "unknown")]))
+        test_df = self.tv_df[self.tv_df["my_rating"].isna()].drop("my_rating", axis=1)
+        test_df = test_df[test_df["type"].notna()]
 
-    rating_pipe = make_pipeline(
-        SimpleImputer(strategy="median", add_indicator=True),
-        StandardScaler())
+        X = train_df.drop(["my_rating"], axis=1)
+        y = train_df["my_rating"]
 
-    popularity_pipe = make_pipeline(
-        SimpleImputer(strategy="constant", fill_value=tv_df["popularity_rank"].max(), add_indicator=True),
-        StandardScaler())
+        # Break off validation set from training data.
+        X_train, X_valid, y_train, y_valid = train_test_split(X, y, train_size=0.8, test_size=0.2, random_state=0)
 
-    network_pipe = make_pipeline(
-        OneHotEncoder(categories=[tv_df["network"].unique()]))
+        return X, y, X_train, X_valid, y_train, y_valid, test_df
 
-    remainder_pipe = make_pipeline(
-        SimpleImputer(add_indicator=True),
-        MinMaxScaler()
-    )
+    def create_transformer(self):
+        year_pipe = make_pipeline(
+            SimpleImputer(strategy="constant", fill_value=self.tv_df["start_year"].dropna().max()),
+            StandardScaler())
 
-    year_cat = ["start_year", "end_year"]
-    genre_cat = [name for name in tv_df.columns if name.startswith("genre")]
-    rating_cat = [name for name in tv_df.columns if name.startswith("rating_")]
-    popularity_cat = ["popularity_rank"]
-    ordinal_cat = ["type", "status"]
+        genre_pipe = make_pipeline(
+            SimpleImputer(strategy="constant", fill_value=0))
 
-    remainder_cat = [col for col in tv_df.columns if
-                     col not in year_cat + genre_cat + rating_cat + popularity_cat + ordinal_cat + ["rating", "network",
-                                                                                                    "my_rating"]]
+        string_pipe = make_pipeline(
+            SimpleImputer(strategy="most_frequent"),
+            OrdinalEncoder())
 
-    transformers = [
-        ("start_year", year_pipe, year_cat),
-        ("genre", genre_pipe, genre_cat),
-        ("ratings", rating_pipe, rating_cat),
-        ("popularity", popularity_pipe, popularity_cat),
-        ("ordinal", string_pipe, ordinal_cat),
-        ("cat", cat_pipe, ["rating"]),
-        ("network", network_pipe, ["network"]),
-        ("remaining", remainder_pipe, remainder_cat)
-    ]
+        cat_pipe = make_pipeline(
+            SimpleImputer(strategy="constant", fill_value="unknown"),
+            OneHotEncoder(categories=[np.append(self.tv_df["rating"].unique(), "unknown")]))
 
-    transformer = ColumnTransformer(
-        transformers,
-        remainder=SimpleImputer(add_indicator=True))
+        rating_pipe = make_pipeline(
+            SimpleImputer(strategy="median", add_indicator=True),
+            StandardScaler())
 
-    return transformer
+        popularity_pipe = make_pipeline(
+            SimpleImputer(strategy="constant", fill_value=self.tv_df["popularity_rank"].max(), add_indicator=True),
+            StandardScaler())
 
+        network_pipe = make_pipeline(
+            OneHotEncoder(categories=[self.tv_df["network"].unique()]))
 
-def export_predictions(local, predictions_df):
-    # Export the dataframe to the database.
-    engine = db_connect(local)
-    print("Saving database to tv_episodes table.")
-    predictions_df.to_sql('predictions', engine, if_exists='replace')
+        remainder_pipe = make_pipeline(
+            SimpleImputer(add_indicator=True),
+            MinMaxScaler()
+        )
+
+        year_cat = ["start_year", "end_year"]
+        genre_cat = [name for name in self.tv_df.columns if name.startswith("genre")]
+        rating_cat = [name for name in self.tv_df.columns if name.startswith("rating_")]
+        popularity_cat = ["popularity_rank"]
+        ordinal_cat = ["type", "status"]
+
+        remainder_cat = [col for col in self.tv_df.columns if
+                         col not in year_cat + genre_cat + rating_cat + popularity_cat + ordinal_cat + ["rating",
+                                                                                                        "network",
+                                                                                                        "my_rating"]]
+
+        transformers = [
+            ("start_year", year_pipe, year_cat),
+            ("genre", genre_pipe, genre_cat),
+            ("ratings", rating_pipe, rating_cat),
+            ("popularity", popularity_pipe, popularity_cat),
+            ("ordinal", string_pipe, ordinal_cat),
+            ("cat", cat_pipe, ["rating"]),
+            ("network", network_pipe, ["network"]),
+            ("remaining", remainder_pipe, remainder_cat)
+        ]
+
+        transformer = ColumnTransformer(
+            transformers,
+            remainder=SimpleImputer(add_indicator=True))
+
+        return transformer
+
+    def save_predictions(self, local):
+        # Export the dataframe to the database.
+        engine = db_connect(local)
+        print("Saving database to tvdb table.")
+        self.tvdb_df.to_sql('tvdb', engine, if_exists='replace')

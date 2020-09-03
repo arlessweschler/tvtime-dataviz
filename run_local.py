@@ -5,7 +5,6 @@ import requests
 
 from crawlers.imdb_crawler.models import db_connect
 from helpers.helper import get_tv_shows, get_episodes
-from helpers.utility import transform_length
 
 
 def refine_db(local):

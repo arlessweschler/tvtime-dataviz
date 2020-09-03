@@ -6,7 +6,8 @@ from decouple import config
 from crawlers.run_crawler import create_imdb_db
 from run_local import improve_db, update_my_ratings, \
     refine_db, update_seen_tv_episodes
-from train_model import train_model
+
+from train_model import Model
 
 app = Flask(__name__)
 
@@ -61,7 +62,7 @@ def update_episodes():
 @app.route('/train', methods=['GET', 'POST'])
 def train():
     print("Training model.")
-    return train_model(LOCAL)
+    return Model().train_model(LOCAL)
 
 
 # run the app
