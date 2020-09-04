@@ -13,8 +13,8 @@ class TvShowScraper:
         # GENRES
         try:
             div = self.html.find_all("div", {"class": "see-more inline canwrap"})[1]
-            genres = [a.text for a in div.find_all('a')]
-            item["genres"] = "".join(genres).strip()
+            genres = [a.text.strip() for a in div.find_all('a')]
+            item["genres"] = "|".join(genres)
         except Exception:
             item["genres"] = None
 

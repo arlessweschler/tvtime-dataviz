@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
@@ -21,7 +20,7 @@ class Model:
     def train_model(self, local):
         self.create_dataset(local)
         main_df = self.tv_df.copy()
-        self.tv_df = self.remove_useless_features()
+        self.remove_useless_features()
 
         X, y, X_train, X_valid, y_train, y_valid, test_df = self.split_data()
 
@@ -31,12 +30,9 @@ class Model:
         tr_X_valid = transformer.transform(X_valid)
 
         # Fit model.
-        try:
-            model = XGBRegressor(n_estimators=500, random_state=17)
-            model.fit(tr_X_train, y_train, early_stopping_rounds=5, eval_set=[(tr_X_valid, y_valid)], verbose=False)
-        except NameError:
-            model = RandomForestRegressor(random_state=17)
-            model.fit(tr_X_train, y_train)
+        model = XGBRegressor(n_estimators=500, random_state=17)
+        model.fit(tr_X_train, y_train, early_stopping_rounds=5, eval_set=[(tr_X_valid, y_valid)], verbose=False)
+        n_estimators = model.get_booster().best_iteration
 
         # Predict results for validation set.
         valid_predictions = model.predict(tr_X_valid)
@@ -52,10 +48,7 @@ class Model:
 
         # Fit model on the whole training data.
         tr_X = transformer.fit_transform(X)
-        try:
-            model = XGBRegressor(n_estimators=75)
-        except NameError:
-            pass
+        model = XGBRegressor(n_estimators=n_estimators)
         model.fit(tr_X, y)
 
         # Predict unseen ratings of unseen tv series.
@@ -83,6 +76,10 @@ class Model:
         self.tvdb_df = pd.read_sql_query('SELECT * FROM tvdb', con=engine, index_col="imdb_id")
         self.my_ratings_df = pd.read_sql_query('SELECT * FROM my_ratings', con=engine, index_col="imdb_id")
 
+        # Drop tvdb genres columns because already present in imdb.
+        genres_columns = [col for col in self.tvdb_df.columns if col.startswith("genre_")]
+        self.tvdb_df.drop(columns=genres_columns, axis=1, inplace=True)
+
         # Merge datasets together.
         cols_to_use = self.tvdb_df.columns.difference(self.imdb_df.columns)
         df1 = pd.merge(self.imdb_df, self.tvdb_df[cols_to_use], how="outer", left_index=True, right_index=True)
@@ -99,25 +96,8 @@ class Model:
         print("Dataset created.")
 
     def remove_useless_features(self):
-        # Get features correlation.
-        corr_matrix = self.tv_df.corr()
-
-        # Select upper triangle of correlation matrix.
-        upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(np.bool))
-
-        # Find features with correlation greater than 0.95.
-        suspicious_features = upper[upper > 0.95]
-        suspicious_features = suspicious_features.dropna(axis=0, how="all").dropna(axis=1, how="all")
-
-        # Rename some columns.
-        self.tv_df.rename(columns={
-            "genre_arts": "genre_martial_arts",
-            "genre_fiction": "genre_science_fiction",
-            "genre_interest": "genre_special_interest"
-        })
-
         # Remove useless columns.
-        cols_to_remove = ["name", "genre_martial", "genre_science", "genre_special", "genre_", "series_name", "banner",
+        cols_to_remove = ["name", "series_name", "banner",
                           "fanart", "overview", "poster", "first_aired", "tvdb_id"]
         self.tv_df.drop(cols_to_remove, axis=1, inplace=True)
 
@@ -126,8 +106,6 @@ class Model:
                            :20].index.to_list()
         # Change network value of unpopular networks as "unpopular".
         self.tv_df["network"] = self.tv_df["network"].map(lambda x: x if x in popular_networks else "unpopular")
-
-        return self.tv_df
 
     def split_data(self):
         # Split training set and test set.

@@ -15,7 +15,7 @@ def refine_db(local):
     imdb_series_df = pd.read_sql_query('SELECT * FROM imdb', con=engine, index_col="id")
 
     # Get a list of all the possible genres.
-    genres = set(" ".join(imdb_series_df["genres"].dropna().tolist()).split(" "))
+    genres = set("|".join(imdb_series_df["genres"].dropna().tolist()).split("|"))
     genres = list(filter(lambda x: len(x) > 0, genres))
 
     # Create and fill columns in the dataframe.
@@ -42,7 +42,7 @@ def improve_db(local):
 
     # Encoding of genres.
     # Get a list of all the possible genres.
-    genres = set(" ".join(tv_series_df["genres"].tolist()).split(" "))
+    genres = set("|".join(tv_series_df["genres"].tolist()).split("|"))
 
     # Create and fill columns in the dataframe.
     for i, row in tv_series_df.iterrows():

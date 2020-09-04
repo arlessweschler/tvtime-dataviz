@@ -62,7 +62,7 @@ def get_series_by_tvdb_id(tvdb_id):
         "first_aired": data["firstAired"],
         "network": data["network"],
         "runtime": data["runtime"],
-        "genres": " ".join(data["genre"]),
+        "genres": "|".join(data["genre"]),
         "overview": data["overview"],
         "rating": data["rating"],
         "imdb_id": data["imdbId"],
