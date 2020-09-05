@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
+from sklearn.impute import SimpleImputer, KNNImputer
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import make_pipeline
@@ -17,13 +17,6 @@ def train_model(local):
     imdb_df = pd.read_sql_query('SELECT * FROM imdb', con=engine, index_col="id")
     tvdb_df = pd.read_sql_query('SELECT * FROM tvdb', con=engine, index_col="imdb_id")
     my_ratings_df = pd.read_sql_query('SELECT * FROM my_ratings', con=engine, index_col="imdb_id")
-
-    # Drop tvdb genres columns because already present in imdb.
-    genres_columns = [col for col in tvdb_df.columns if col.startswith("genre_")]
-    tvdb_df.drop(columns=genres_columns, axis=1, inplace=True)
-
-    # Drop num_seasons and runtime because already present in imdb.
-    tvdb_df.drop(columns=['num_seasons', 'runtime'], axis=1, inplace=True)
 
     # Merge datasets together.
     cols_to_use = tvdb_df.columns.difference(imdb_df.columns)
@@ -42,7 +35,7 @@ def train_model(local):
     main_df = tv_df.copy()
 
     # Remove useless columns.
-    cols_to_remove = ["name", "series_name", "banner",
+    cols_to_remove = ["name", "series_name", "banner", 'n_seasons', 'runtime',
                       "fanart", "overview", "poster", "first_aired", "tvdb_id"]
     tv_df.drop(cols_to_remove, axis=1, inplace=True)
 
@@ -115,49 +108,63 @@ def train_model(local):
 
 def create_transformer(tv_df):
     year_pipe = make_pipeline(
-        SimpleImputer(strategy="constant", fill_value=tv_df["start_year"].dropna().max()),
+        SimpleImputer(strategy="constant", fill_value=tv_df["start_year"].max()),
         StandardScaler())
 
     genre_pipe = make_pipeline(
         SimpleImputer(strategy="constant", fill_value=0))
 
-    string_pipe = make_pipeline(
-        SimpleImputer(strategy="most_frequent"),
-        OrdinalEncoder())
-
-    cat_pipe = make_pipeline(
-        SimpleImputer(strategy="constant", fill_value="unknown"),
-        OneHotEncoder(categories=[np.append(tv_df["rating"].unique(), "unknown")]))
-
-    rating_pipe = make_pipeline(
-        SimpleImputer(strategy="median", add_indicator=True),
+    avg_ratings_pipe = make_pipeline(
+        KNNImputer(n_neighbors=2, weights="uniform"),
         StandardScaler())
 
     popularity_pipe = make_pipeline(
         SimpleImputer(strategy="constant", fill_value=tv_df["popularity_rank"].max(), add_indicator=True),
         StandardScaler())
 
+    ordinal_pipe = make_pipeline(
+        SimpleImputer(strategy="most_frequent"),
+        OrdinalEncoder())
+
+    rating_pipe = make_pipeline(
+        SimpleImputer(strategy="constant", fill_value="unknown"),
+        OneHotEncoder(categories=[np.append(tv_df["rating"].unique(), "unknown")]))
+
     network_pipe = make_pipeline(
         OneHotEncoder(categories=[tv_df["network"].unique()]))
 
+    median_pipe = make_pipeline(
+        KNNImputer(n_neighbors=2, weights="uniform"),
+        StandardScaler()
+    )
+
+    mean_pipe = make_pipeline(
+        KNNImputer(n_neighbors=2, weights="uniform"),
+        StandardScaler()
+    )
+
     year_cat = ["start_year", "end_year"]
     genre_cat = [name for name in tv_df.columns if name.startswith("genre")]
-    rating_cat = [name for name in tv_df.columns if name.startswith("rating_")]
+    avg_ratings_cat = [name for name in tv_df.columns if name.startswith("rating_")]
     popularity_cat = ["popularity_rank"]
     ordinal_cat = ["type", "status"]
+    rating_cat = ["rating"]
+    network_cat = ["network"]
+    median_cat = ['n_episodes', 'n_ratings', 'tvdb_ratings', 'num_seasons']
+    mean_cat = ['ep_length', 'tvdb_avg_rating']
 
     transformers = [
-        ("start_year", year_pipe, year_cat),
-        ("genre", genre_pipe, genre_cat),
-        ("ratings", rating_pipe, rating_cat),
-        ("popularity", popularity_pipe, popularity_cat),
-        ("ordinal", string_pipe, ordinal_cat),
-        ("cat", cat_pipe, ["rating"]),
-        ("network", network_pipe, ["network"])
+        ('year', year_pipe, year_cat),
+        ('genres', genre_pipe, genre_cat),
+        ('avg_ratings', avg_ratings_pipe, avg_ratings_cat),
+        ('popularity', popularity_pipe, popularity_cat),
+        ('ordinal', ordinal_pipe, ordinal_cat),
+        ('rating', rating_pipe, rating_cat),
+        ('network', network_pipe, network_cat),
+        ('median', median_pipe, median_cat),
+        ('mean', mean_pipe, mean_cat)
     ]
 
-    transformer = ColumnTransformer(
-        transformers,
-        remainder=SimpleImputer(add_indicator=True))
+    transformer = ColumnTransformer(transformers, remainder='drop')
 
     return transformer

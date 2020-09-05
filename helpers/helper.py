@@ -168,16 +168,18 @@ def show_predictions(local):
     tvdb_series_df.sort_values(by='prediction', ascending=False, inplace=True)
 
     # Create table to display in the page.
-    stringa = '<table>'
-    for i, row in tvdb_series_df.iloc[0:20, :].iterrows():
+    stringa = '<table>' \
+              '<tr><th>prediction</th><th>title</th><th>overview</th></tr>'
+    for i, row in tvdb_series_df.iloc[0:10, :].iterrows():
         try:
-            overview = textwrap.shorten(row["overview"], width=170, placeholder="...")
+            overview = '. '.join(row['overview'].split('.')[:2]) + '.'
         except AttributeError:
             overview = ''
+        link = f'https://www.imdb.com/title/{row["imdb_id"]}/'
         stringa += f'<tr>' \
-                   f'<td>{row["series_name"]}</td>' \
-                   f'<td>{row["prediction"]:.2f}</td>' \
-                   f'<td>{overview}</td>' \
+                   f'<td width=5%><b>{row["prediction"]:.2f}</b></td>' \
+                   f'<td width=20%><b><a href="{link}" target="_blank">{row["series_name"]}</a></b></td>' \
+                   f'<td width=75% style="height: 60px;">{overview}</td>' \
                    f'</tr>'
     stringa += '</table>'
 
