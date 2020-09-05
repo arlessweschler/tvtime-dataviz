@@ -4,9 +4,8 @@ from flask import Flask
 from decouple import config
 
 from crawlers.run_crawler import create_imdb_db
-from run_local import improve_db, update_my_ratings, refine_db, update_seen_tv_episodes, show_predictions
-
-from train_model import Model
+from helpers.helper import refine_db, show_predictions, improve_db, update_my_ratings, update_seen_tv_episodes
+from model import train_model
 
 app = Flask(__name__)
 
@@ -72,7 +71,7 @@ def update_episodes():
 @app.route('/train', methods=['GET', 'POST'])
 def train():
     print("Training model.")
-    Model().train_model(LOCAL)
+    train_model(LOCAL)
     return "Model trained, predictions are available on <a href='/'>homepage</a>."
 
 
