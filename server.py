@@ -1,6 +1,7 @@
+import os
 from multiprocessing.dummy import Process
 
-from flask import Flask
+from flask import Flask, request
 from decouple import config
 
 from crawlers.run_crawler import create_imdb_db
@@ -22,7 +23,14 @@ def update_i(local):
     refine_db(local)
 
 
-# TODO: Display predictions.
+def get_pwd(local):
+    if local:
+        pwd = config('pwd')
+    else:
+        pwd = os.environ['pwd']
+    return pwd
+
+
 @app.route('/')
 def index():
     return show_predictions(LOCAL)
@@ -31,6 +39,8 @@ def index():
 # Updates the IMDb database.
 @app.route('/update-imdb', methods=['GET', 'POST'])
 def update_imdb():
+    if request.args.get('pwd') != get_pwd(LOCAL):
+        return "Access denied."
     print("Updating IMDb.")
     process = Process(target=update_i, args=(LOCAL,))
     process.start()
@@ -40,6 +50,8 @@ def update_imdb():
 # Updates the TVDb database.
 @app.route('/update-tvdb', methods=['GET', 'POST'])
 def update_tvdb():
+    if request.args.get('pwd') != get_pwd(LOCAL):
+        return "Access denied."
     print("Updating TVDb.")
     process = Process(target=improve_db, args=(LOCAL,))
     process.start()
@@ -49,6 +61,8 @@ def update_tvdb():
 # Updates my ratings.
 @app.route('/update-ratings', methods=['GET', 'POST'])
 def update_ratings():
+    if request.args.get('pwd') != get_pwd(LOCAL):
+        return "Access denied."
     print("Updating ratings.")
     process = Process(target=update_my_ratings, args=(LOCAL,))
     process.start()
@@ -70,6 +84,8 @@ def update_episodes():
 # Train model and update predictions.
 @app.route('/train', methods=['GET', 'POST'])
 def train():
+    if request.args.get('pwd') != get_pwd(LOCAL):
+        return "Access denied."
     print("Training model.")
     train_model(LOCAL)
     return "Model trained, predictions are available on <a href='/'>homepage</a>."
