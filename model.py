@@ -46,51 +46,42 @@ def train_model(local):
     tv_df["network"] = tv_df["network"].map(lambda x: x if x in popular_networks else "unpopular")
 
     # Split training set and test set.
-    train_df = tv_df.dropna(axis=0, subset=["my_rating"])
+    rated_df = tv_df.dropna(axis=0, subset=["my_rating"])
 
-    test_df = tv_df[tv_df["my_rating"].isna()].drop("my_rating", axis=1)
-    test_df = test_df[test_df["type"].notna()]
+    unrated_df = tv_df[tv_df["my_rating"].isna()].drop("my_rating", axis=1)
+    unrated_df = unrated_df[unrated_df["type"].notna()]
 
-    X = train_df.drop(["my_rating"], axis=1)
-    y = train_df["my_rating"]
+    X = rated_df.drop(["my_rating"], axis=1)
+    y = rated_df["my_rating"]
 
-    # Break off validation set from training data.
-    X_train, X_valid, y_train, y_valid = train_test_split(X, y, train_size=0.8, test_size=0.2, random_state=0)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, test_size=0.2, random_state=0)
 
-    transformer = create_transformer(tv_df)
+    preprocessor = create_preprocessor(tv_df)
 
-    tr_X_train = transformer.fit_transform(X_train)
-    tr_X_valid = transformer.transform(X_valid)
+    model = make_pipeline(
+        preprocessor,
+        XGBRegressor(n_estimators=50, random_state=17))
 
     # Fit model.
-    model = XGBRegressor(n_estimators=500, random_state=17)
-    model.fit(tr_X_train, y_train, early_stopping_rounds=5, eval_set=[(tr_X_valid, y_valid)], verbose=False)
-    n_estimators = model.get_booster().best_iteration
+    model.fit(X_train, y_train)
 
-    # Predict results for validation set.
-    valid_predictions = model.predict(tr_X_valid)
+    # Predict results for test set.
+    predictions = model.predict(X_test)
 
     # Display results comparing them to real personal ratings.
-    valid_results = pd.DataFrame(data=dict(prediction=valid_predictions, real=y_valid.to_list(),
-                                           difference=valid_predictions - y_valid.to_list()),
-                                 index=main_df.loc[y_valid.index, "name"])
+    valid_results = pd.DataFrame(data=dict(prediction=predictions, real=y_test.to_list(),
+                                           difference=predictions - y_test.to_list()),
+                                 index=main_df.loc[y_test.index, "name"])
     print(valid_results.sort_values(by="difference", ascending=False).round(decimals=2))
 
-    print(f"MRSE: {np.sqrt(mean_squared_error(y_valid, valid_predictions)):.2f}")
-    print(f"R2 score: {r2_score(y_valid, valid_predictions):.2f}")
+    print(f"MRSE: {np.sqrt(mean_squared_error(y_test, predictions)):.2f}")
+    print(f"R2 score: {r2_score(y_test, predictions):.2f}")
 
-    # Fit model on the whole training data.
-    tr_X = transformer.fit_transform(X)
-    model = XGBRegressor(n_estimators=n_estimators)
-    model.fit(tr_X, y)
-
-    # Predict unseen ratings of unseen tv series.
-    tr_X_test = transformer.transform(test_df)
-    test_predictions = model.predict(tr_X_test)
+    predictions = model.predict(unrated_df)
 
     # Display best tv series to watch, removing documentary because I do not care about them.
     predictions_df = main_df.copy().dropna(how='all')
-    predictions_df["prediction"] = pd.Series(data=test_predictions, index=test_df.index)
+    predictions_df["prediction"] = pd.Series(data=predictions, index=unrated_df.index)
     # Remove documentaries.
     predictions_df = predictions_df[predictions_df["genre_documentary"] == 0]
 
@@ -106,7 +97,7 @@ def train_model(local):
     tvdb_df.to_sql('tvdb', engine, if_exists='replace')
 
 
-def create_transformer(tv_df):
+def create_preprocessor(tv_df):
     year_pipe = make_pipeline(
         SimpleImputer(strategy="constant", fill_value=tv_df["start_year"].max()),
         StandardScaler())
@@ -165,6 +156,6 @@ def create_transformer(tv_df):
         ('mean', mean_pipe, mean_cat)
     ]
 
-    transformer = ColumnTransformer(transformers, remainder='drop')
+    preprocessor = ColumnTransformer(transformers, remainder='drop')
 
-    return transformer
+    return preprocessor
