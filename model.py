@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer, KNNImputer
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler, MinMaxScaler
@@ -74,7 +74,7 @@ def train_model(local):
                                  index=main_df.loc[y_test.index, "name"])
     print(valid_results.sort_values(by="difference", ascending=False).round(decimals=2))
 
-    print(f"MRSE: {np.sqrt(mean_squared_error(y_test, predictions)):.2f}")
+    print(f"MAE: {mean_absolute_error(y_test, predictions):.2f}")
     print(f"R2 score: {r2_score(y_test, predictions):.2f}")
 
     predictions = model.predict(unrated_df)
