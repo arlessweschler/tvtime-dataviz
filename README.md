@@ -5,10 +5,10 @@ tvtime-dataviz is a personal project created to improve my skills as a Data Scie
 ## Dataset creation
 
 I created the dataset by using:
-- a spider that crawls *imdb.com* looking for tv series and mini-series made after 1989 with at least 2.5k ratings;
-- external APIs from *thetvdb.com*;
-- a data dump obtained from *tvtime.com*, a website I use to track the TV series I watch. I analyzed and extracted data about all the TV series and episodes I have watched over the last 6 years of my life.
-- personal ratings (integers from 1 to 10) assigned to every TV series I have watched.
+- a **spider** that crawls *imdb.com* looking for tv series and mini-series made after 1989 with at least 2.5k ratings;
+- **external APIs** from *thetvdb.com*;
+- a **data dump** obtained from *tvtime.com*, a website I use to track the TV series I watch. I analyzed and extracted data about all the TV series and episodes I have watched over the last 6 years of my life.
+- **personal ratings** (integers from 1 to 10) assigned to every TV series I have watched.
 
 ## Jupyter Notebooks
 
