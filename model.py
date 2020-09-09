@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer, KNNImputer
 from sklearn.metrics import mean_absolute_error, r2_score
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler, MinMaxScaler
 from xgboost import XGBRegressor
@@ -33,6 +33,9 @@ def train_model(local):
 
     # Save a copy to display results after prediction.
     main_df = tv_df.copy()
+
+    # Create new feature: episodes per season.
+    tv_df['ep_per_season'] = tv_df['n_episodes'] / tv_df['n_seasons']
 
     # Remove useless columns.
     cols_to_remove = ["name", "series_name", "banner", 'n_seasons', 'runtime',
@@ -64,6 +67,10 @@ def train_model(local):
 
     # Fit model.
     model.fit(X_train, y_train)
+
+    # Calculate Mean Absolute Error over training set.
+    scores = cross_val_score(model, X_train, y_train, scoring="neg_mean_absolute_error", cv=10)
+    print(f"MAE on training set: {-scores.mean():.2f} (+/- {(scores.std() * 2):.2f})")
 
     # Predict results for test set.
     predictions = model.predict(X_test)
@@ -124,13 +131,8 @@ def create_preprocessor(tv_df):
     network_pipe = make_pipeline(
         OneHotEncoder(categories=[tv_df["network"].unique()]))
 
-    median_pipe = make_pipeline(
-        KNNImputer(n_neighbors=2, weights="uniform"),
-        StandardScaler()
-    )
-
-    mean_pipe = make_pipeline(
-        KNNImputer(n_neighbors=2, weights="uniform"),
+    knn_pipe = make_pipeline(
+        KNNImputer(n_neighbors=3, weights="distance"),
         StandardScaler()
     )
 
@@ -141,8 +143,8 @@ def create_preprocessor(tv_df):
     ordinal_cat = ["type", "status"]
     rating_cat = ["rating"]
     network_cat = ["network"]
-    median_cat = ['n_episodes', 'n_ratings', 'tvdb_ratings', 'num_seasons']
-    mean_cat = ['ep_length', 'tvdb_avg_rating']
+    knn_cat = ['n_episodes', 'n_ratings', 'tvdb_ratings', 'num_seasons', 'ep_length', 'tvdb_avg_rating',
+               'ep_per_season']
 
     transformers = [
         ('year', year_pipe, year_cat),
@@ -152,8 +154,7 @@ def create_preprocessor(tv_df):
         ('ordinal', ordinal_pipe, ordinal_cat),
         ('rating', rating_pipe, rating_cat),
         ('network', network_pipe, network_cat),
-        ('median', median_pipe, median_cat),
-        ('mean', mean_pipe, mean_cat)
+        ('knn', knn_pipe, knn_cat)
     ]
 
     preprocessor = ColumnTransformer(transformers, remainder='drop')
