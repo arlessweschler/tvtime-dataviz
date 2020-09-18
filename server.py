@@ -21,6 +21,7 @@ except Exception:
 def update_i(local):
     create_imdb_db(local)
     refine_db(local)
+    improve_db(local)
 
 
 def get_pwd(local):
@@ -36,26 +37,15 @@ def index():
     return show_predictions(LOCAL)
 
 
-# Updates the IMDb database.
-@app.route('/update-imdb', methods=['GET', 'POST'])
-def update_imdb():
+# Updates the database.
+@app.route('/update', methods=['GET', 'POST'])
+def update():
     if request.args.get('pwd') != get_pwd(LOCAL):
         return "Access denied."
-    print("Updating IMDb.")
+    print("Updating database.")
     process = Process(target=update_i, args=(LOCAL,))
     process.start()
-    return "Updating IMDb database..."
-
-
-# Updates the TVDb database.
-@app.route('/update-tvdb', methods=['GET', 'POST'])
-def update_tvdb():
-    if request.args.get('pwd') != get_pwd(LOCAL):
-        return "Access denied."
-    print("Updating TVDb.")
-    process = Process(target=improve_db, args=(LOCAL,))
-    process.start()
-    return "Updating TVDb database..."
+    return "Updating database..."
 
 
 # Updates my ratings.
