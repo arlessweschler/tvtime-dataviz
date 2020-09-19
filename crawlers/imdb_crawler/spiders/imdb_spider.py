@@ -4,6 +4,7 @@
 # your spiders.
 
 import scrapy
+from time import time
 
 from crawlers.imdb_crawler.scrapers.ratings_scraper import RatingsScraper
 from crawlers.imdb_crawler.scrapers.tv_series_scraper import TvSeriesScraper
@@ -15,6 +16,7 @@ class ImdbSpider(scrapy.Spider):
 
     tot_items = None
     items = 0
+    time = time()
 
     num_votes = 10000
     release_date = 1989

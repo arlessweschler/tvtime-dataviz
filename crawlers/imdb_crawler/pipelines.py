@@ -1,8 +1,9 @@
 from sqlalchemy.orm import sessionmaker
 
 from crawlers.imdb_crawler.models import db_connect, create_table, TvSeries
-from helpers.printer import green
+from helpers.printer import green, blue
 
+from time import time
 
 class ImdbCrawlerPipeline:
     @classmethod
@@ -67,6 +68,12 @@ class ImdbCrawlerPipeline:
             per = spider.items / spider.tot_items * 100
             per_string = green(f"[{per:.1f}%]")
             print(f"{per_string} {spider.items} {tv_series.name}")
+            # Print speed every 100 items.
+            if spider.items % 50 == 0:
+                speed = 50 / (time() - spider.time)
+                print(blue(f"[SPEED] {speed:.2f} e/s"))
+                spider.time = time()
+
         except Exception:
             session.rollback()
             raise
