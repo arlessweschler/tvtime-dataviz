@@ -18,10 +18,11 @@ except Exception:
     LOCAL = False
 
 
-def update_i(local):
+def update_db(local):
     create_imdb_db(local)
     refine_db(local)
     improve_db(local)
+    train_model(local)
 
 
 def get_pwd(local):
@@ -37,13 +38,13 @@ def index():
     return show_predictions(LOCAL)
 
 
-# Updates the database.
+# Updates the database and train model.
 @app.route('/update', methods=['GET', 'POST'])
 def update():
     if request.args.get('pwd') != get_pwd(LOCAL):
         return "Access denied."
     print("Updating database.")
-    process = Process(target=update_i, args=(LOCAL,))
+    process = Process(target=update_db, args=(LOCAL,))
     process.start()
     return "Updating database..."
 
@@ -69,16 +70,6 @@ def update_episodes():
         return "Updating my episodes..."
     else:
         return 'Cannot perform this operation on the server!'
-
-
-# Train model and update predictions.
-@app.route('/train', methods=['GET', 'POST'])
-def train():
-    if request.args.get('pwd') != get_pwd(LOCAL):
-        return "Access denied."
-    print("Training model.")
-    train_model(LOCAL)
-    return "Model trained, predictions are available on <a href='/'>homepage</a>."
 
 
 # run the app

@@ -1,8 +1,7 @@
-import textwrap
+from io import StringIO
 
 import pandas as pd
 import requests
-from io import StringIO
 
 from apis import tvdb_api
 from crawlers.imdb_crawler.models import db_connect
@@ -82,7 +81,7 @@ def improve_db(local):
 
     # Encoding of genres.
     # Get a list of all the possible genres.
-    genres = set("|".join(tv_series_df["genres"].tolist()).split("|"))
+    genres = set("|".join(tv_series_df["genres"].dropna().tolist()).split("|"))
 
     # Create and fill columns in the dataframe.
     for i, row in tv_series_df.iterrows():
