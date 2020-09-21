@@ -49,6 +49,17 @@ def update():
     return "Updating database..."
 
 
+# Train model.
+@app.route('/train', methods=['GET', 'POST'])
+def train():
+    if request.args.get('pwd') != get_pwd(LOCAL):
+        return "Access denied."
+    print("Training model.")
+    process = Process(target=train_model, args=(LOCAL,))
+    process.start()
+    return "Training model..."
+
+
 # Updates my ratings.
 @app.route('/update-ratings', methods=['GET', 'POST'])
 def update_ratings():

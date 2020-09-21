@@ -2,11 +2,11 @@ import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer, KNNImputer
-from sklearn.metrics import mean_absolute_error, r2_score
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.metrics import mean_absolute_error
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler, MinMaxScaler
-from xgboost import XGBRegressor
+import xgboost as xgb
 
 from crawlers.imdb_crawler.models import db_connect
 
@@ -57,16 +57,30 @@ def train_model(local):
     X = rated_df.drop(["my_rating"], axis=1)
     y = rated_df["my_rating"]
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, test_size=0.2, random_state=0)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, random_state=17)
 
     preprocessor = create_preprocessor(tv_df)
 
     model = make_pipeline(
         preprocessor,
-        XGBRegressor(n_estimators=50, random_state=17))
+        xgb.XGBRegressor(random_state=17))
 
-    # Fit model.
-    model.fit(X_train, y_train)
+    # Tune parameters.
+    param_grid = {
+        'xgbregressor__n_estimators': [30, 40, 50],
+        'xgbregressor__max_depth': [5, 6, 7, 8],
+        'xgbregressor__min_child_weight': [6, 7, 8, 9],
+        'xgbregressor__eta': [.2, .1, .01],
+        'xgbregressor__eval_metric': ['mae']
+    }
+
+    grid_clf = GridSearchCV(model, param_grid, cv=10, iid=False, n_jobs=4, verbose=1)
+    grid_clf.fit(X_train, y_train)
+
+    print(grid_clf.best_params_)
+    print(grid_clf.best_estimator_.score(X_test, y_test))
+
+    model = grid_clf.best_estimator_
 
     # Calculate Mean Absolute Error over training set.
     scores = cross_val_score(model, X_train, y_train, scoring="neg_mean_absolute_error", cv=10)
@@ -81,8 +95,7 @@ def train_model(local):
                                  index=main_df.loc[y_test.index, "name"])
     print(valid_results.sort_values(by="difference", ascending=False).round(decimals=2))
 
-    print(f"MAE: {mean_absolute_error(y_test, predictions):.2f}")
-    print(f"R2 score: {r2_score(y_test, predictions):.2f}")
+    print(f"MAE on test set: {mean_absolute_error(y_test, predictions):.2f}")
 
     predictions = model.predict(unrated_df)
 
@@ -107,18 +120,18 @@ def train_model(local):
 def create_preprocessor(tv_df):
     year_pipe = make_pipeline(
         SimpleImputer(strategy="constant", fill_value=tv_df["start_year"].max()),
-        StandardScaler())
+        MinMaxScaler())
 
     genre_pipe = make_pipeline(
         SimpleImputer(strategy="constant", fill_value=0))
 
     avg_ratings_pipe = make_pipeline(
-        KNNImputer(n_neighbors=2, weights="uniform"),
+        KNNImputer(n_neighbors=5, weights="uniform"),
         StandardScaler())
 
     popularity_pipe = make_pipeline(
         SimpleImputer(strategy="constant", fill_value=tv_df["popularity_rank"].max(), add_indicator=True),
-        StandardScaler())
+        MinMaxScaler())
 
     ordinal_pipe = make_pipeline(
         SimpleImputer(strategy="most_frequent"),
@@ -133,7 +146,7 @@ def create_preprocessor(tv_df):
 
     knn_pipe = make_pipeline(
         KNNImputer(n_neighbors=3, weights="distance"),
-        StandardScaler()
+        MinMaxScaler()
     )
 
     year_cat = ["start_year", "end_year"]
