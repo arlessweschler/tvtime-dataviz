@@ -67,10 +67,10 @@ def train_model(local):
 
     # Tune parameters.
     param_grid = {
-        'xgbregressor__n_estimators': [30, 40, 50],
-        'xgbregressor__max_depth': [5, 6, 7, 8],
-        'xgbregressor__min_child_weight': [6, 7, 8, 9],
-        'xgbregressor__eta': [.2, .1, .01],
+        'xgbregressor__n_estimators': [40],
+        'xgbregressor__max_depth': [7],
+        'xgbregressor__min_child_weight': [8],
+        'xgbregressor__eta': [.1],
         'xgbregressor__eval_metric': ['mae']
     }
 
@@ -78,7 +78,6 @@ def train_model(local):
     grid_clf.fit(X_train, y_train)
 
     print(grid_clf.best_params_)
-    print(grid_clf.best_estimator_.score(X_test, y_test))
 
     model = grid_clf.best_estimator_
 
