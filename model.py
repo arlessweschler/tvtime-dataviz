@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer, KNNImputer
 from sklearn.metrics import mean_absolute_error
@@ -37,16 +38,12 @@ def train_model(local):
     # Create new feature: episodes per season.
     tv_df['ep_per_season'] = tv_df['n_episodes'] / tv_df['n_seasons']
 
-    # Remove useless columns.
-    cols_to_remove = ["name", "series_name", "banner", 'n_seasons', 'runtime',
-                      "fanart", "overview", "poster", "first_aired", "tvdb_id"]
-    tv_df.drop(cols_to_remove, axis=1, inplace=True)
-
-    # Identify popular networks.
-    popular_networks = tv_df.groupby(by="network").count().sort_values(by="my_rating", ascending=False)[
-                       :20].index.to_list()
-    # Change network value of unpopular networks as "unpopular".
-    tv_df["network"] = tv_df["network"].map(lambda x: x if x in popular_networks else "unpopular")
+    # Fill NaN values in network.
+    tv_df['network'] = tv_df['network'].fillna('Unknown')
+    # Calculate my avg rating for each network.
+    networks_rat = tv_df.groupby(by="network").mean()["my_rating"].sort_values(ascending=False)
+    # Replace network name with my avg rating for its shows.
+    tv_df['network'] = tv_df["network"].map(lambda x: networks_rat[x])
 
     # Split training set and test set.
     rated_df = tv_df.dropna(axis=0, subset=["my_rating"])
@@ -74,7 +71,7 @@ def train_model(local):
         'xgbregressor__eval_metric': ['mae']
     }
 
-    grid_clf = GridSearchCV(model, param_grid, cv=10, iid=False, n_jobs=4, verbose=1)
+    grid_clf = GridSearchCV(model, param_grid, cv=10, n_jobs=4, verbose=1)
     grid_clf.fit(X_train, y_train)
 
     print(grid_clf.best_params_)
@@ -141,7 +138,8 @@ def create_preprocessor(tv_df):
         OneHotEncoder(categories=[np.append(tv_df["rating"].unique(), "unknown")]))
 
     network_pipe = make_pipeline(
-        OneHotEncoder(categories=[tv_df["network"].unique()]))
+        SimpleImputer(strategy='mean'),
+        StandardScaler())
 
     knn_pipe = make_pipeline(
         KNNImputer(n_neighbors=3, weights="distance"),
