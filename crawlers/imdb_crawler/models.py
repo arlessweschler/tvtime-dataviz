@@ -63,3 +63,4 @@ class TvSeries(Base):
     rating_45to100 = Column('rating_45to100', Float)
     rating_M_45to100 = Column('rating_M_45to100', Float)
     rating_F_45to100 = Column('rating_F_45to100', Float)
+    poster = Column(String)

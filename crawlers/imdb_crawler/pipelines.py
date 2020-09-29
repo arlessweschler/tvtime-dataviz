@@ -5,6 +5,7 @@ from helpers.printer import green, blue
 
 from time import time
 
+
 class ImdbCrawlerPipeline:
     @classmethod
     def from_crawler(cls, crawler):
@@ -61,6 +62,7 @@ class ImdbCrawlerPipeline:
         tv_series.rating_45to100 = item["rating_45to100"]
         tv_series.rating_M_45to100 = item["rating_M_45to100"]
         tv_series.rating_F_45to100 = item["rating_F_45to100"]
+        tv_series.poster = item['poster']
         try:
             session.add(tv_series)
             session.commit()

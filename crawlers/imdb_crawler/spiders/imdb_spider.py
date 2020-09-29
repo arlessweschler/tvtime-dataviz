@@ -44,11 +44,10 @@ class ImdbSpider(scrapy.Spider):
 
         ratings_page = scraper.get_ratings_page()
         ratings_page = response.urljoin(ratings_page)
+
         yield response.follow(ratings_page, callback=self.parse_ratings, meta={"tv_series_item": tv_series_item})
 
     def parse_ratings(self, response):
         scraper = RatingsScraper(response.body)
         tv_series_item = scraper.get_all_ratings(item=response.meta["tv_series_item"])
         yield tv_series_item
-
-

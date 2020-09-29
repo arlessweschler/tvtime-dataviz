@@ -58,6 +58,10 @@ class TvShowScraper:
         # N_RATINGS
         item["n_ratings"] = self.html.find("div", {"class": "imdbRating"}).find('a').text.replace(',', '')
 
+        # POSTER
+        poster_url = self.html.find('div', {'class': 'poster'}).find('img')['src'].split('@._V1_')[0]
+        item['poster'] = poster_url + '@._V1_'
+
         return item
 
     def get_ratings_page(self):
