@@ -98,8 +98,6 @@ def train_model(local):
     # Display best tv series to watch, removing documentary because I do not care about them.
     predictions_df = main_df.copy().dropna(how='all')
     predictions_df["prediction"] = pd.Series(data=predictions, index=unrated_df.index)
-    # Remove documentaries.
-    predictions_df = predictions_df[predictions_df["genre_documentary"] == 0]
 
     # Sort and round numbers.
     predictions_df = predictions_df.sort_values(by="prediction", ascending=False)[
