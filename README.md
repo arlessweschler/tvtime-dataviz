@@ -20,8 +20,9 @@ This repo contains two notebooks:
 
 A server deployed on Heroku updates every day a PostGreSQL database containing the dataset to be used by the model.
 
-The TV series recommended by the model can be seen at https://tv-series-recommender.herokuapp.com/
+The TV series recommended by the model can be seen at https://docker-website.herokuapp.com/imdb/.
+This website was created using Django+Bootstrap and deployed with Docker.
+
 
 ## To do
-- Improving how to display the recommendations.
 - Creating a timeline containing all the episodes watched.
