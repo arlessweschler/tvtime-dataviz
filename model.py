@@ -1,13 +1,12 @@
 import numpy as np
 import pandas as pd
-from sklearn.base import BaseEstimator, TransformerMixin
+import xgboost as xgb
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer, KNNImputer
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler, MinMaxScaler
-import xgboost as xgb
 
 from crawlers.imdb_crawler.models import db_connect
 
@@ -95,7 +94,7 @@ def train_model(local):
 
     predictions = model.predict(unrated_df)
 
-    # Display best tv series to watch, removing documentary because I do not care about them.
+    # Display best tv series to watch.
     predictions_df = main_df.copy().dropna(how='all')
     predictions_df["prediction"] = pd.Series(data=predictions, index=unrated_df.index)
 
