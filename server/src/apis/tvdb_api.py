@@ -2,17 +2,11 @@ import json
 import os
 
 import requests
-from decouple import config
 
 # Get data from .env file or from environment vars.
-try:
-    tvdb_apikey = config('tvdb_apikey')
-    tvdb_userkey = config('tvdb_userkey')
-    tvdb_name = config('tvdb_name')
-except Exception:
-    tvdb_apikey = os.environ.get('tvdb_apikey')
-    tvdb_userkey = os.environ.get('tvdb_userkey')
-    tvdb_name = os.environ.get('tvdb_name')
+tvdb_apikey = os.environ.get('tvdb_apikey')
+tvdb_userkey = os.environ.get('tvdb_userkey')
+tvdb_name = os.environ.get('tvdb_name')
 
 # Headers for API requests.
 headers = {

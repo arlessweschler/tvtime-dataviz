@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split, cross_val_score, GridSearc
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler, MinMaxScaler
 
-from crawlers.imdb_crawler.models import db_connect
+from crawler.models import db_connect
 
 
 def train_model(local):

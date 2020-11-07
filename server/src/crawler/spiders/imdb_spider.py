@@ -6,9 +6,9 @@
 import scrapy
 from time import time
 
-from crawlers.imdb_crawler.scrapers.ratings_scraper import RatingsScraper
-from crawlers.imdb_crawler.scrapers.tv_series_scraper import TvSeriesScraper
-from crawlers.imdb_crawler.scrapers.tv_show_scraper import TvShowScraper
+from crawler.scrapers.ratings_scraper import RatingsScraper
+from crawler.scrapers.tv_series_scraper import TvSeriesScraper
+from crawler.scrapers.tv_show_scraper import TvShowScraper
 
 
 class ImdbSpider(scrapy.Spider):

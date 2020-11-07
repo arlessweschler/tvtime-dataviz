@@ -1,0 +1,29 @@
+version: "3.7"
+   
+services:
+  server:
+    build: server
+    # restart: always
+    ports:
+      - 5000:5000
+    command: python server.py
+    env_file:
+      - server/.env
+    volumes:
+      - ./server/src:/code
+
+  database:
+    image: "postgres"
+    ports:
+      - 5432:5432
+    env_file:
+      - db.env
+    volumes:
+      - database-data:/var/lib/postgresql/data/
+
+
+volumes:
+  database-data:
+
+
+x-disabled:

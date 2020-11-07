@@ -4,7 +4,7 @@ import pandas as pd
 import requests
 
 from apis import tvdb_api
-from crawlers.imdb_crawler.models import db_connect
+from crawler.models import db_connect
 from helpers.printer import green
 
 

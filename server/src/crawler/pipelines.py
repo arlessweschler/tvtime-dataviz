@@ -1,6 +1,6 @@
 from sqlalchemy.orm import sessionmaker
 
-from crawlers.imdb_crawler.models import db_connect, create_table, TvSeries
+from crawler.models import db_connect, create_table, TvSeries
 from helpers.printer import green, blue
 
 from time import time

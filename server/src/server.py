@@ -2,20 +2,15 @@ import os
 from multiprocessing.dummy import Process
 
 from flask import Flask, request
-from decouple import config
 
-from crawlers.run_crawler import create_imdb_db
 from helpers.helper import refine_db, show_predictions, improve_db, update_my_ratings, update_seen_tv_episodes
 from model import train_model
+from run_crawler import create_imdb_db
 
 app = Flask(__name__)
 
 # Recognize if running in local on not.
-try:
-    db_password = config('db_password')
-    LOCAL = True
-except Exception:
-    LOCAL = False
+LOCAL = os.environ['DEBUG']
 
 
 def update_db(local):
@@ -23,14 +18,6 @@ def update_db(local):
     refine_db(local)
     improve_db(local)
     train_model(local)
-
-
-def get_pwd(local):
-    if local:
-        pwd = config('pwd')
-    else:
-        pwd = os.environ['pwd']
-    return pwd
 
 
 @app.route('/')
@@ -41,7 +28,7 @@ def index():
 # Updates the database and train model.
 @app.route('/update', methods=['GET', 'POST'])
 def update():
-    if request.args.get('pwd') != get_pwd(LOCAL):
+    if request.args.get('pwd') != os.environ['pwd']:
         return "Access denied."
     print("Updating database.")
     process = Process(target=update_db, args=(LOCAL,))
@@ -52,7 +39,7 @@ def update():
 # Train model.
 @app.route('/train', methods=['GET', 'POST'])
 def train():
-    if request.args.get('pwd') != get_pwd(LOCAL):
+    if request.args.get('pwd') != os.environ['pwd']:
         return "Access denied."
     print("Training model.")
     process = Process(target=train_model, args=(LOCAL,))
@@ -63,7 +50,7 @@ def train():
 # Updates my ratings.
 @app.route('/update-ratings', methods=['GET', 'POST'])
 def update_ratings():
-    if request.args.get('pwd') != get_pwd(LOCAL):
+    if request.args.get('pwd') != os.environ['pwd']:
         return "Access denied."
     print("Updating ratings.")
     process = Process(target=update_my_ratings, args=(LOCAL,))
