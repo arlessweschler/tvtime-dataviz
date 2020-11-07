@@ -5,7 +5,7 @@ import pathlib
 import os
 
 
-def create_imdb_db(local=True):
+def run_imdb_crawler(local=True):
     path = pathlib.Path(__file__).parent.absolute()
     os.chdir(path)
     print("run crawler")

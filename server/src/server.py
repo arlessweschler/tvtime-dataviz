@@ -5,7 +5,7 @@ from flask import Flask, request
 
 from helpers.helper import refine_db, show_predictions, improve_db, update_my_ratings, update_seen_tv_episodes
 from model import train_model
-from run_crawler import create_imdb_db
+from run_crawler import run_imdb_crawler
 
 app = Flask(__name__)
 
@@ -14,10 +14,11 @@ LOCAL = os.environ['DEBUG']
 
 
 def update_db(local):
-    create_imdb_db(local)
-    refine_db(local)
+    print('prova')
+    run_imdb_crawler(local)
+    '''refine_db(local)
     improve_db(local)
-    train_model(local)
+    train_model(local)'''
 
 
 @app.route('/')

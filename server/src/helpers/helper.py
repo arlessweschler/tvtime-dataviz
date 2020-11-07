@@ -57,16 +57,21 @@ def refine_db(local):
     genres = set("|".join(imdb_series_df["genres"].dropna().tolist()).split("|"))
     genres = list(filter(lambda x: len(x) > 0, genres))
 
-    # Create and fill columns in the dataframe.
-    for i, row in imdb_series_df.iterrows():
+    # Create and fill genre columns in the dataframe.
+    '''for i, row in imdb_series_df.iterrows():
         for genre in genres:
             if row["genres"] is not None:
-                imdb_series_df.loc[i, f"genre_{genre.lower()}"] = int(genre in row["genres"])
+                imdb_series_df.loc[i, f"genre_{genre.lower()}"] = int(genre in row["genres"])'''
+
+    # ALt
+    for genre in genres:
+        imdb_series_df[f"genre_{genre.lower()}"] = imdb_series_df['genres'].map(
+            lambda x: int(genre in x), na_action='ignore')
 
     imdb_series_df = imdb_series_df.drop(columns=["genres"])
 
     # Export the dataframe to the database.
-    print("Saving database in imdb table.")
+    print("Saving database to imdb table.")
     imdb_series_df.to_sql('imdb', engine, if_exists='replace')
 
 
