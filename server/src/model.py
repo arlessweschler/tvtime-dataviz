@@ -15,15 +15,11 @@ def train_model(local):
     # Import datasets.
     engine = db_connect(local)
     imdb_df = pd.read_sql_query('SELECT * FROM imdb', con=engine, index_col="id")
-    tvdb_df = pd.read_sql_query('SELECT * FROM tvdb', con=engine, index_col="imdb_id")
     my_ratings_df = pd.read_sql_query('SELECT * FROM my_ratings', con=engine, index_col="imdb_id")
 
     # Merge datasets together.
-    cols_to_use = tvdb_df.columns.difference(imdb_df.columns)
-    df1 = pd.merge(imdb_df, tvdb_df[cols_to_use], how="outer", left_index=True, right_index=True)
-
-    cols_to_use = my_ratings_df.columns.difference(df1.columns)
-    tv_df = pd.merge(df1, my_ratings_df[cols_to_use], how="outer", left_index=True, right_index=True)
+    cols_to_use = my_ratings_df.columns.difference(imdb_df.columns)
+    tv_df = pd.merge(imdb_df, my_ratings_df[cols_to_use], how="outer", left_index=True, right_index=True)
 
     # Drop prediction feature if present.
     try:
@@ -36,13 +32,6 @@ def train_model(local):
 
     # Create new feature: episodes per season.
     tv_df['ep_per_season'] = tv_df['n_episodes'] / tv_df['n_seasons']
-
-    # Fill NaN values in network.
-    tv_df['network'] = tv_df['network'].fillna('Unknown')
-    # Calculate my avg rating for each network.
-    networks_rat = tv_df.groupby(by="network").mean()["my_rating"].sort_values(ascending=False)
-    # Replace network name with my avg rating for its shows.
-    tv_df['network'] = tv_df["network"].map(lambda x: networks_rat[x])
 
     # Split training set and test set.
     rated_df = tv_df.dropna(axis=0, subset=["my_rating"])
@@ -100,14 +89,14 @@ def train_model(local):
 
     # Sort and round numbers.
     predictions_df = predictions_df.sort_values(by="prediction", ascending=False)[
-        ["name", "prediction", "overview"]].round(decimals=2)
+        ["name", "prediction"]].round(decimals=2)
 
     # Save predictions to tvdb table.
-    tvdb_df['prediction'] = predictions_df["prediction"]
+    imdb_df['prediction'] = predictions_df["prediction"]
     # Export the dataframe to the database.
     engine = db_connect(local)
-    print("Saving database to tvdb table.")
-    tvdb_df.to_sql('tvdb', engine, if_exists='replace')
+    print("Saving database to imdb table.")
+    imdb_df.to_sql('imdb', engine, if_exists='replace')
 
 
 def create_preprocessor(tv_df):
@@ -130,14 +119,6 @@ def create_preprocessor(tv_df):
         SimpleImputer(strategy="most_frequent"),
         OrdinalEncoder())
 
-    rating_pipe = make_pipeline(
-        SimpleImputer(strategy="constant", fill_value="unknown"),
-        OneHotEncoder(categories=[np.append(tv_df["rating"].unique(), "unknown")]))
-
-    network_pipe = make_pipeline(
-        SimpleImputer(strategy='mean'),
-        StandardScaler())
-
     knn_pipe = make_pipeline(
         KNNImputer(n_neighbors=3, weights="distance"),
         MinMaxScaler()
@@ -147,11 +128,8 @@ def create_preprocessor(tv_df):
     genre_cat = [name for name in tv_df.columns if name.startswith("genre")]
     avg_ratings_cat = [name for name in tv_df.columns if name.startswith("rating_")]
     popularity_cat = ["popularity_rank"]
-    ordinal_cat = ["type", "status"]
-    rating_cat = ["rating"]
-    network_cat = ["network"]
-    knn_cat = ['n_episodes', 'n_ratings', 'tvdb_ratings', 'num_seasons', 'ep_length', 'tvdb_avg_rating',
-               'ep_per_season']
+    ordinal_cat = ["type"]
+    knn_cat = ['n_episodes', 'n_ratings', 'n_seasons', 'ep_length', 'ep_per_season']
 
     transformers = [
         ('year', year_pipe, year_cat),
@@ -159,8 +137,6 @@ def create_preprocessor(tv_df):
         ('avg_ratings', avg_ratings_pipe, avg_ratings_cat),
         ('popularity', popularity_pipe, popularity_cat),
         ('ordinal', ordinal_pipe, ordinal_cat),
-        ('rating', rating_pipe, rating_cat),
-        ('network', network_pipe, network_cat),
         ('knn', knn_pipe, knn_cat)
     ]
 

@@ -3,7 +3,7 @@ from multiprocessing.dummy import Process
 
 from flask import Flask, request
 
-from helpers.helper import refine_db, show_predictions, improve_db, update_my_ratings, update_seen_tv_episodes
+from helpers.helper import refine_db, show_predictions, update_my_ratings, update_seen_tv_episodes
 from model import train_model
 from run_crawler import run_imdb_crawler
 
@@ -14,15 +14,18 @@ LOCAL = os.environ['DEBUG']
 
 
 def update_db(local):
-    print('prova')
     run_imdb_crawler(local)
-    '''refine_db(local)
-    improve_db(local)
-    train_model(local)'''
+    refine_db(local)
+    train_model(local)
 
 
 @app.route('/')
 def index():
+    return 'Ciaone'
+
+
+@app.route('/show')
+def show():
     return show_predictions(LOCAL)
 
 
@@ -73,4 +76,4 @@ def update_episodes():
 
 # run the app
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True, host='0.0.0.0')

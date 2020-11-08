@@ -1,7 +1,7 @@
 import json
 import os
-
 import requests
+
 
 # Get data from .env file or from environment vars.
 tvdb_apikey = os.environ.get('tvdb_apikey')
@@ -39,9 +39,12 @@ headers["Authorization"] = f"Bearer {token}"
 
 
 def get_series_by_tvdb_id(tvdb_id):
+    print(f'\nDownloading {tvdb_id}')
     endpoint = f"https://api.thetvdb.com/series/{tvdb_id}"
     response = requests.get(endpoint, headers=headers).content
     data = json.loads(response).get("data")
+    if data is None:
+        return None
     # Check that season and runtime are not empty.
     data["season"] = 1 if data["season"] == '' else data["season"]
     data["runtime"] = None if data["runtime"] == '' else data["runtime"]

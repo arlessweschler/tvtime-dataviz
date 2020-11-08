@@ -19,7 +19,9 @@ def db_connect(local):
         db_user = 'postgres'
         db_name = os.environ['POSTGRES_DB']
         db_password = os.environ['POSTGRES_PASSWORD']
-        engine = create_engine(f"postgres+psycopg2://{db_user}:{db_password}@database:5432/{db_name}")
+        hostname = 'localhost'
+        db_port = '5432'
+        engine = create_engine(f"postgres+psycopg2://{db_user}:{db_password}@{hostname}:{db_port}/{db_name}")
     else:
         database_url = os.environ['DATABASE_URL']
         engine = create_engine(database_url)
