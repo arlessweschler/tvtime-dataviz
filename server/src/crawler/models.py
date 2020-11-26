@@ -19,7 +19,7 @@ def db_connect(local):
         db_user = 'postgres'
         db_name = os.environ['POSTGRES_DB']
         db_password = os.environ['POSTGRES_PASSWORD']
-        hostname = 'localhost'
+        hostname = os.environ['HOSTNAME']
         db_port = '5432'
         engine = create_engine(f"postgres+psycopg2://{db_user}:{db_password}@{hostname}:{db_port}/{db_name}")
     else:
@@ -66,3 +66,4 @@ class TvSeries(Base):
     rating_M_45to100 = Column('rating_M_45to100', Float)
     rating_F_45to100 = Column('rating_F_45to100', Float)
     poster = Column(String)
+    prediction = Column(Float)

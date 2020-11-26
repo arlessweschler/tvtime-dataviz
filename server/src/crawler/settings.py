@@ -21,7 +21,10 @@ NEWSPIDER_MODULE = 'crawler.spiders'
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
 
-LOG_LEVEL = "ERROR"
+LOG_ENABLED = True
+LOG_LEVEL = "WARNING"
+# LOG_FILE = 'scrapy.log'
+LOG_FORMAT = '%(asctime)s - %(message)s'
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 CONCURRENT_REQUESTS = 8
