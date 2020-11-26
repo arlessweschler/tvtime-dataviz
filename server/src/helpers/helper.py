@@ -4,7 +4,8 @@ import pandas as pd
 import requests
 
 from apis import tvdb_api
-from crawlers.imdb_crawler.models import db_connect
+from apis.tvdb_api import get_series_by_tvdb_id
+from crawler.models import db_connect
 from helpers.printer import green
 
 
@@ -57,49 +58,23 @@ def refine_db(local):
     genres = set("|".join(imdb_series_df["genres"].dropna().tolist()).split("|"))
     genres = list(filter(lambda x: len(x) > 0, genres))
 
-    # Create and fill columns in the dataframe.
-    for i, row in imdb_series_df.iterrows():
-        for genre in genres:
-            if row["genres"] is not None:
-                imdb_series_df.loc[i, f"genre_{genre.lower()}"] = int(genre in row["genres"])
+    # Create and fill genre columns in the dataframe.
+    for genre in genres:
+        imdb_series_df[f"genre_{genre.lower()}"] = imdb_series_df['genres'].map(
+            lambda x: int(genre in x), na_action='ignore')
 
     imdb_series_df = imdb_series_df.drop(columns=["genres"])
 
     # Export the dataframe to the database.
-    print("Saving database in imdb table.")
+    print("Saving database to imdb table.")
     imdb_series_df.to_sql('imdb', engine, if_exists='replace')
-
-
-def improve_db(local):
-    # Get data from IMDb database.
-    engine = db_connect(local)
-    print("Improving database...")
-    imdb_series_df = pd.read_sql_query('SELECT * FROM imdb', con=engine, index_col="id")
-
-    # Use TVDb APIs to enrich IMDb results.
-    tv_series_df = get_tv_shows(imdb_series_df)
-
-    # Encoding of genres.
-    # Get a list of all the possible genres.
-    genres = set("|".join(tv_series_df["genres"].dropna().tolist()).split("|"))
-
-    # Create and fill columns in the dataframe.
-    for i, row in tv_series_df.iterrows():
-        for genre in genres:
-            tv_series_df.loc[i, f"genre_{genre.lower()}"] = int(genre in row["genres"])
-    tv_series_df = tv_series_df.drop(columns=["genres"])
-
-    # Export the dataframe to the database.
-    print("Saving database to tvdb table.")
-    tv_series_df.to_sql('tvdb', engine, if_exists='replace', index=False)
 
 
 def update_my_ratings(local):
     # Get data from tv_series database.
     engine = db_connect(local)
-    tvdb_series_df = pd.read_sql_query('SELECT * FROM tvdb', con=engine, index_col="tvdb_id")
     my_ratings_df = pd.read_sql_query('SELECT * FROM my_ratings', con=engine, index_col="tvdb_id")
-
+    my_ratings_df = pd.DataFrame()
     # Read user_tv_show_data.csv from Google Drive.
     dwn_url = 'https://drive.google.com/uc?export=download&id='
     id_user_show = '1EfCJWOkRlAagAAkVLBucqeuXlohCQLt0'
@@ -110,21 +85,22 @@ def update_my_ratings(local):
     followed_tv_shows_df = user_tv_show_data_df.loc[is_followed]
 
     # Add ratings for TV series not yet rated.
-    for i, tv_show in followed_tv_shows_df.iterrows():
-        if i not in list(my_ratings_df.index):
-            try:
-                rating = pd.DataFrame({
-                    "imdb_id": tvdb_series_df.loc[i, "imdb_id"],
-                    "series_name": tvdb_series_df.loc[i, "series_name"],
-                    "my_rating": None}, index=[i])
-                print(f"Adding {tvdb_series_df.loc[i, 'series_name']}")
-            except KeyError:
-                print(f"Error: {i}")
-                rating = pd.DataFrame({
-                    "imdb_id": "",
-                    "series_name": "",
-                    "my_rating": None}, index=[i])
-            my_ratings_df = my_ratings_df.append(rating)
+    new_indexes = [i for i in followed_tv_shows_df.index if i not in my_ratings_df.index]
+    for index in new_indexes:
+        series = get_series_by_tvdb_id(tvdb_id=index)
+        if series is not None:
+            rating = pd.DataFrame({
+                    "imdb_id": series['imdb_id'],
+                    "series_name": series['series_name'],
+                    "my_rating": None}, index=[index])
+            print(f"Adding {series['series_name']}")
+        else:
+            rating = pd.DataFrame({
+                "imdb_id": None,
+                "series_name": None,
+                "my_rating": None}, index=[index])
+            print(f'Adding {index}')
+        my_ratings_df = my_ratings_df.append(rating)
 
     # Export the dataframe to the database.
     engine = db_connect(local)
@@ -159,26 +135,21 @@ def update_seen_tv_episodes(local):
 
 
 def show_predictions(local):
-    # Get data from tvdb database.
+    # Get data from imdb database.
     engine = db_connect(local)
-    tvdb_series_df = pd.read_sql_query('SELECT * FROM tvdb', con=engine, index_col="tvdb_id")
+    imdb_series_df = pd.read_sql_query('SELECT * FROM imdb', con=engine, index_col="id")
 
     # Sort predictions.
-    tvdb_series_df.sort_values(by='prediction', ascending=False, inplace=True)
+    imdb_series_df.sort_values(by='prediction', ascending=False, inplace=True)
 
     # Create table to display in the page.
     stringa = '<table>' \
-              '<tr><th>prediction</th><th>title</th><th>overview</th></tr>'
-    for i, row in tvdb_series_df.iloc[0:10, :].iterrows():
-        try:
-            overview = '. '.join(row['overview'].split('.')[:2]) + '.'
-        except AttributeError:
-            overview = ''
-        link = f'https://www.imdb.com/title/{row["imdb_id"]}/'
+              '<tr><th>prediction</th><th>title</th></tr>'
+    for i, row in imdb_series_df.iloc[0:10, :].iterrows():
+        link = f'https://www.imdb.com/title/{i}/'
         stringa += f'<tr>' \
                    f'<td width=5%><b>{row["prediction"]:.2f}</b></td>' \
-                   f'<td width=20%><b><a href="{link}" target="_blank">{row["series_name"]}</a></b></td>' \
-                   f'<td width=75% style="height: 60px;">{overview}</td>' \
+                   f'<td width=20%><b><a href="{link}" target="_blank">{row["name"]}</a></b></td>' \
                    f'</tr>'
     stringa += '</table>'
 

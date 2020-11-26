@@ -2,48 +2,39 @@ import os
 from multiprocessing.dummy import Process
 
 from flask import Flask, request
-from decouple import config
 
-from crawlers.run_crawler import create_imdb_db
-from helpers.helper import refine_db, show_predictions, improve_db, update_my_ratings, update_seen_tv_episodes
+from helpers.helper import refine_db, show_predictions, update_my_ratings, update_seen_tv_episodes
 from model import train_model
+from run_crawler import run_imdb_crawler
 
-app = Flask(__name__)
+app = Flask('server')
+
 
 # Recognize if running in local on not.
-try:
-    db_password = config('db_password')
-    LOCAL = True
-except Exception:
-    LOCAL = False
+LOCAL = os.environ['DEBUG']
 
 
 def update_db(local):
-    create_imdb_db(local)
+    run_imdb_crawler(local)
     refine_db(local)
-    improve_db(local)
     train_model(local)
-
-
-def get_pwd(local):
-    if local:
-        pwd = config('pwd')
-    else:
-        pwd = os.environ['pwd']
-    return pwd
 
 
 @app.route('/')
 def index():
+    return 'Ciaone'
+
+
+@app.route('/show')
+def show():
     return show_predictions(LOCAL)
 
 
 # Updates the database and train model.
 @app.route('/update', methods=['GET', 'POST'])
 def update():
-    if request.args.get('pwd') != get_pwd(LOCAL):
+    if request.args.get('pwd') != os.environ['pwd']:
         return "Access denied."
-    print("Updating database.")
     process = Process(target=update_db, args=(LOCAL,))
     process.start()
     return "Updating database..."
@@ -52,9 +43,8 @@ def update():
 # Train model.
 @app.route('/train', methods=['GET', 'POST'])
 def train():
-    if request.args.get('pwd') != get_pwd(LOCAL):
+    if request.args.get('pwd') != os.environ['pwd']:
         return "Access denied."
-    print("Training model.")
     process = Process(target=train_model, args=(LOCAL,))
     process.start()
     return "Training model..."
@@ -63,9 +53,8 @@ def train():
 # Updates my ratings.
 @app.route('/update-ratings', methods=['GET', 'POST'])
 def update_ratings():
-    if request.args.get('pwd') != get_pwd(LOCAL):
+    if request.args.get('pwd') != os.environ['pwd']:
         return "Access denied."
-    print("Updating ratings.")
     process = Process(target=update_my_ratings, args=(LOCAL,))
     process.start()
     return "Updating my ratings..."
@@ -75,7 +64,6 @@ def update_ratings():
 @app.route('/update-episodes', methods=['GET', 'POST'])
 def update_episodes():
     if LOCAL:
-        print("Updating episodes.")
         process = Process(target=update_seen_tv_episodes, args=(LOCAL,))
         process.start()
         return "Updating my episodes..."
@@ -85,4 +73,4 @@ def update_episodes():
 
 # run the app
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True, host='0.0.0.0')

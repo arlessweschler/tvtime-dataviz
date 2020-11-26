@@ -39,4 +39,4 @@ class ImdbItem(Item):
     rating_M_45to100 = Field()
     rating_F_45to100 = Field()
     poster = Field()
-
+    prediction = Field()

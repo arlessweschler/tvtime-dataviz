@@ -1,18 +1,12 @@
 import json
 import os
-
 import requests
-from decouple import config
+
 
 # Get data from .env file or from environment vars.
-try:
-    tvdb_apikey = config('tvdb_apikey')
-    tvdb_userkey = config('tvdb_userkey')
-    tvdb_name = config('tvdb_name')
-except Exception:
-    tvdb_apikey = os.environ.get('tvdb_apikey')
-    tvdb_userkey = os.environ.get('tvdb_userkey')
-    tvdb_name = os.environ.get('tvdb_name')
+tvdb_apikey = os.environ.get('tvdb_apikey')
+tvdb_userkey = os.environ.get('tvdb_userkey')
+tvdb_name = os.environ.get('tvdb_name')
 
 # Headers for API requests.
 headers = {
@@ -45,9 +39,12 @@ headers["Authorization"] = f"Bearer {token}"
 
 
 def get_series_by_tvdb_id(tvdb_id):
+    print(f'\nDownloading {tvdb_id}')
     endpoint = f"https://api.thetvdb.com/series/{tvdb_id}"
     response = requests.get(endpoint, headers=headers).content
     data = json.loads(response).get("data")
+    if data is None:
+        return None
     # Check that season and runtime are not empty.
     data["season"] = 1 if data["season"] == '' else data["season"]
     data["runtime"] = None if data["runtime"] == '' else data["runtime"]

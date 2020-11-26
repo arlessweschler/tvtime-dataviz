@@ -1,9 +1,10 @@
 from sqlalchemy.orm import sessionmaker
 
-from crawlers.imdb_crawler.models import db_connect, create_table, TvSeries
+from crawler.models import db_connect, create_table, TvSeries
 from helpers.printer import green, blue
 
 from time import time
+import logging
 
 
 class ImdbCrawlerPipeline:
@@ -12,7 +13,7 @@ class ImdbCrawlerPipeline:
         # Here, you get whatever value was passed through the "table" parameter
         settings = crawler.settings
         local = settings.get("local")
-        print(f"Local: {local}")
+        logging.warning(f"Local: {local}")
 
         # Instantiate the pipeline with your table
         return cls(local)
@@ -63,17 +64,19 @@ class ImdbCrawlerPipeline:
         tv_series.rating_M_45to100 = item["rating_M_45to100"]
         tv_series.rating_F_45to100 = item["rating_F_45to100"]
         tv_series.poster = item['poster']
+        tv_series.prediction = None
+
         try:
             session.add(tv_series)
             session.commit()
             spider.items += 1
             per = spider.items / spider.tot_items * 100
             per_string = green(f"[{per:.1f}%]")
-            print(f"{per_string} {spider.items} {tv_series.name}")
+            logging.warning(f"{per_string} {spider.items} {tv_series.name}")
             # Print speed every 100 items.
             if spider.items % 50 == 0:
                 speed = 50 / (time() - spider.time)
-                print(blue(f"[SPEED] {speed:.2f} e/s"))
+                logging.warning(blue(f"[SPEED] {speed:.2f} e/s"))
                 spider.time = time()
 
         except Exception:
