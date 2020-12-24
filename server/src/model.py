@@ -1,4 +1,5 @@
-import numpy as np
+import logging
+
 import pandas as pd
 import xgboost as xgb
 from sklearn.compose import ColumnTransformer
@@ -6,11 +7,10 @@ from sklearn.impute import SimpleImputer, KNNImputer
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler, MinMaxScaler
+from sklearn.preprocessing import OrdinalEncoder, StandardScaler, MinMaxScaler
 
 from crawler.models import db_connect
 
-import logging
 logging.basicConfig(format='%(asctime)s - %(message)s')
 
 
