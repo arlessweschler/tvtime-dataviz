@@ -14,9 +14,9 @@ import logging
 logging.basicConfig(format='%(asctime)s - %(message)s')
 
 
-def train_model(local):
+def train_model():
     # Import datasets.
-    engine = db_connect(local)
+    engine = db_connect()
     imdb_df = pd.read_sql_query('SELECT * FROM imdb', con=engine, index_col="id")
     my_ratings_df = pd.read_sql_query('SELECT * FROM my_ratings', con=engine, index_col="imdb_id")
 
@@ -94,7 +94,7 @@ def train_model(local):
     # Save predictions to tvdb table.
     imdb_df['prediction'] = predictions_df["prediction"]
     # Export the dataframe to the database.
-    engine = db_connect(local)
+    engine = db_connect()
     logging.info("Saving database to imdb table.")
     imdb_df.to_sql('imdb', engine, if_exists='replace')
 

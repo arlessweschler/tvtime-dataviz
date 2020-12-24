@@ -10,14 +10,10 @@ from run_crawler import run_imdb_crawler
 app = Flask('server')
 
 
-# Recognize if running in local on not.
-LOCAL = os.environ['DEBUG']
-
-
-def update_db(local):
-    run_imdb_crawler(local)
-    refine_db(local)
-    train_model(local)
+def update_db():
+    run_imdb_crawler()
+    refine_db()
+    train_model()
 
 
 @app.route('/')
@@ -27,7 +23,7 @@ def index():
 
 @app.route('/show')
 def show():
-    return show_predictions(LOCAL)
+    return show_predictions()
 
 
 # Updates the database and train model.
@@ -35,7 +31,7 @@ def show():
 def update():
     if request.args.get('pwd') != os.environ['pwd']:
         return "Access denied."
-    process = Process(target=update_db, args=(LOCAL,))
+    process = Process(target=update_db, args=())
     process.start()
     return "Updating database..."
 
@@ -45,7 +41,7 @@ def update():
 def train():
     if request.args.get('pwd') != os.environ['pwd']:
         return "Access denied."
-    process = Process(target=train_model, args=(LOCAL,))
+    process = Process(target=train_model, args=())
     process.start()
     return "Training model..."
 
@@ -55,7 +51,7 @@ def train():
 def update_ratings():
     if request.args.get('pwd') != os.environ['pwd']:
         return "Access denied."
-    process = Process(target=update_my_ratings, args=(LOCAL,))
+    process = Process(target=update_my_ratings, args=())
     process.start()
     return "Updating my ratings..."
 
@@ -64,7 +60,7 @@ def update_ratings():
 @app.route('/update-episodes', methods=['GET', 'POST'])
 def update_episodes():
     if LOCAL:
-        process = Process(target=update_seen_tv_episodes, args=(LOCAL,))
+        process = Process(target=update_seen_tv_episodes, args=())
         process.start()
         return "Updating my episodes..."
     else:

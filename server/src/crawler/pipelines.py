@@ -10,20 +10,15 @@ import logging
 class ImdbCrawlerPipeline:
     @classmethod
     def from_crawler(cls, crawler):
-        # Here, you get whatever value was passed through the "table" parameter
-        settings = crawler.settings
-        local = settings.get("local")
-        logging.warning(f"Local: {local}")
-
         # Instantiate the pipeline with your table
-        return cls(local)
+        return cls()
 
-    def __init__(self, local):
+    def __init__(self):
         """
         Initializes database connection and sessionmaker
         Creates tables
         """
-        engine = db_connect(local)
+        engine = db_connect()
         create_table(engine)
         self.Session = sessionmaker(bind=engine)
 

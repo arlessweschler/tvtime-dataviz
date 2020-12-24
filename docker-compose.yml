@@ -1,15 +1,6 @@
 version: "3.7"
    
 services:
-  database:
-    image: "postgres"
-    ports:
-      - 5432:5432
-    env_file:
-      - db.env
-    volumes:
-      - database-data:/var/lib/postgresql/data/
-
   server:
     build: server
     command: python server.py
@@ -19,10 +10,6 @@ services:
       - 5000:5000
     env_file:
       - server/.env
-
-
-volumes:
-  database-data:
 
 
 x-disabled:

@@ -48,9 +48,9 @@ def get_episodes(seen_episodes_df):
     return episodes_df
 
 
-def refine_db(local):
+def refine_db():
     # Get data from IMDb database.
-    engine = db_connect(local)
+    engine = db_connect()
     print("Refining database...")
     imdb_series_df = pd.read_sql_query('SELECT * FROM imdb', con=engine, index_col="id")
 
@@ -70,9 +70,9 @@ def refine_db(local):
     imdb_series_df.to_sql('imdb', engine, if_exists='replace')
 
 
-def update_my_ratings(local):
+def update_my_ratings():
     # Get data from tv_series database.
-    engine = db_connect(local)
+    engine = db_connect()
     my_ratings_df = pd.read_sql_query('SELECT * FROM my_ratings', con=engine, index_col="tvdb_id")
     my_ratings_df = pd.DataFrame()
     # Read user_tv_show_data.csv from Google Drive.
@@ -103,12 +103,12 @@ def update_my_ratings(local):
         my_ratings_df = my_ratings_df.append(rating)
 
     # Export the dataframe to the database.
-    engine = db_connect(local)
+    engine = db_connect()
     print("Saving database to my_ratings table.")
     my_ratings_df.to_sql('my_ratings', engine, if_exists='replace')
 
 
-def update_seen_tv_episodes(local):
+def update_seen_tv_episodes():
     # Read seen_episode.csv from Google Drive.
     dwn_url = 'https://drive.google.com/uc?export=download&id='
     id_seen_episode = '14rdbDyQzawc_Xh49M5Nvgenm2njk8Rx4'
@@ -117,7 +117,7 @@ def update_seen_tv_episodes(local):
     # Create csv file containing episodes.
     try:
         # Get data from tv_series database.
-        engine = db_connect(local)
+        engine = db_connect()
         tv_episodes_df = pd.read_sql_query('SELECT * FROM tv_episodes', con=engine)
 
         # Collect info about new episodes.
@@ -129,7 +129,7 @@ def update_seen_tv_episodes(local):
         tv_episodes_df = get_episodes(seen_episode_df)
 
     # Export the dataframe to the database.
-    engine = db_connect(local)
+    engine = db_connect()
     print("Saving database to tv_episodes table.")
     tv_episodes_df.to_sql('tv_episodes', engine, if_exists='replace')
 

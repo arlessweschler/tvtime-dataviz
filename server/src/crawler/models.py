@@ -3,28 +3,24 @@ from sqlalchemy import create_engine, Column
 from sqlalchemy.ext.declarative import declarative_base
 
 import os
-from pathlib import Path
 
 Base = declarative_base()
 
 
-def db_connect(local):
+def db_connect():
     """
     Performs database connection using database settings from settings.py.
     Returns sqlalchemy engine instance
     """
-    path = Path(os.getcwd())
-    if int(local) == 1:
-        # Get data from .env file.
-        db_user = 'postgres'
-        db_name = os.environ['POSTGRES_DB']
-        db_password = os.environ['POSTGRES_PASSWORD']
-        hostname = os.environ['HOSTNAME']
-        db_port = '5432'
-        engine = create_engine(f"postgres+psycopg2://{db_user}:{db_password}@{hostname}:{db_port}/{db_name}")
-    else:
-        database_url = os.environ['DATABASE_URL']
-        engine = create_engine(database_url)
+    # Connect to online postgresql database.
+    user = os.environ['POSTGRESQL_USER']
+    pwd = os.environ['POSTGRESQL_PASSWORD']
+    host = os.environ['POSTGRESQL_HOST']
+    port = os.environ['POSTGRESQL_PORT']
+    db = os.environ['POSTGRESQL_DB']
+    database_url = f'postgres://{user}:{pwd}@{host}:{port}/{db}'
+    print(database_url)
+    engine = create_engine(database_url)
     return engine
 
 
