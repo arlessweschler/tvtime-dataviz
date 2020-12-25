@@ -36,6 +36,7 @@ class TvSeries(Base):
     name = Column('name', String)
     type = Column(String)
     genres = Column('genres', String)
+    overview = Column(String)
     start_year = Column('start_year', Integer)
     end_year = Column('end_year', Integer)
     ep_length = Column("ep_length", Integer)

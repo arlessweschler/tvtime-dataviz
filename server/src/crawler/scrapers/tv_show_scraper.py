@@ -8,6 +8,8 @@ class TvShowScraper:
         self.html = BeautifulSoup(body, "lxml")
 
     def get_details(self, item):
+        # OVERVIEW
+        item['overview'] = self.html.find("div", {"class": 'inline canwrap'}).find('span').text
         # TYPE
         item["type"] = self.html.find("div", {"class": "subtext"}).find_all('a')[-1].text.split("(")[0].strip()
         # GENRES
