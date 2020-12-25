@@ -38,68 +38,6 @@ token = json.loads(response).get("token")
 headers["Authorization"] = f"Bearer {token}"
 
 
-def get_series_by_tvdb_id(tvdb_id):
-    print(f'\nDownloading {tvdb_id}')
-    endpoint = f"https://api.thetvdb.com/series/{tvdb_id}"
-    response = requests.get(endpoint, headers=headers).content
-    data = json.loads(response).get("data")
-    if data is None:
-        return None
-    # Check that season and runtime are not empty.
-    data["season"] = 1 if data["season"] == '' else data["season"]
-    data["runtime"] = None if data["runtime"] == '' else data["runtime"]
-    tv_show = {
-        "tvdb_id": tvdb_id,
-        "series_name": data["seriesName"],
-        "num_seasons": data["season"],
-        "poster": f"https://artworks.thetvdb.com/banners/{data['poster']}",
-        "banner": f"https://artworks.thetvdb.com/banners/{data['banner']}",
-        "fanart": f"https://artworks.thetvdb.com/banners/{data['fanart']}",
-        "status": data["status"],
-        "first_aired": data["firstAired"],
-        "network": data["network"],
-        "runtime": data["runtime"],
-        "genres": "|".join(data["genre"]),
-        "overview": data["overview"],
-        "rating": data["rating"],
-        "imdb_id": data["imdbId"],
-        "tvdb_avg_rating": data["siteRating"],
-        "tvdb_ratings": data["siteRatingCount"]
-    }
-    return tv_show
-
-
-def get_series_by_imdb_id(imdb_id):
-    endpoint = f"https://api.thetvdb.com/search/series?imdbId={imdb_id}"
-    response = requests.get(endpoint, headers=headers).content
-    data = json.loads(response).get("data")[0]
-    tv_show = {
-        "tvdb_id": data["id"],
-        "series_name": data["seriesName"],
-        "poster": f"https://artworks.thetvdb.com/banners/{data['poster']}",
-        "banner": f"https://artworks.thetvdb.com/banners/{data['banner']}",
-        "fanart": f"https://artworks.thetvdb.com/banners/{data['fanart']}",
-        "status": data["status"],
-        "first_aired": data["firstAired"],
-        "network": data["network"],
-        "imdb_id": imdb_id
-    }
-    return tv_show
-
-
-def get_series_by_name(series_name):
-    endpoint = f"https://api.thetvdb.com/search/series?name={series_name}"
-    response = requests.get(endpoint, headers=headers).content
-    data = json.loads(response).get("data")
-    tv_show = None
-    for el in data:
-        if el.get("seriesName") == series_name:
-            series_id = el.get("id")
-            tv_show = get_series_by_tvdb_id(series_id)
-            break
-    return tv_show
-
-
 def get_episode_by_id(episode_id):
     endpoint = f"https://api.thetvdb.com/episodes/{episode_id}"
     response = requests.get(endpoint, headers=headers).content

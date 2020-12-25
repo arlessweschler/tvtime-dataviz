@@ -4,29 +4,9 @@ import pandas as pd
 import requests
 
 from apis import tvdb_api
-from apis.tvdb_api import get_series_by_tvdb_id
+from apis.tvtime_scraper import get_series_name_from_series_id
 from crawler.models import db_connect
 from helpers.printer import green
-
-
-def get_tv_shows(imdb_series_df):
-    tv_shows = []
-    tot = len(imdb_series_df)
-    con = 0
-    for i, row in imdb_series_df.iterrows():
-        # Get data from TVDB api.
-        try:
-            tvdb_id = tvdb_api.get_series_by_imdb_id(imdb_id=i)["tvdb_id"]
-        except TypeError:
-            continue
-        tv_show = tvdb_api.get_series_by_tvdb_id(tvdb_id=tvdb_id)
-        tv_shows.append(tv_show)
-        # Display info about progress.
-        perc = green(f"[{(con / tot * 100):.1f} %]")
-        print(f"{perc} Show {i}: {tv_show['series_name']} retrieved.")
-        con += 1
-    tv_shows_df = pd.DataFrame(tv_shows)
-    return tv_shows_df
 
 
 def get_episodes(seen_episodes_df):
@@ -74,7 +54,7 @@ def update_my_ratings():
     # Get data from tv_series database.
     engine = db_connect()
     my_ratings_df = pd.read_sql_query('SELECT * FROM my_ratings', con=engine, index_col="tvdb_id")
-    my_ratings_df = pd.DataFrame()
+
     # Read user_tv_show_data.csv from Google Drive.
     dwn_url = 'https://drive.google.com/uc?export=download&id='
     id_user_show = '1EfCJWOkRlAagAAkVLBucqeuXlohCQLt0'
@@ -87,19 +67,11 @@ def update_my_ratings():
     # Add ratings for TV series not yet rated.
     new_indexes = [i for i in followed_tv_shows_df.index if i not in my_ratings_df.index]
     for index in new_indexes:
-        series = get_series_by_tvdb_id(tvdb_id=index)
-        if series is not None:
-            rating = pd.DataFrame({
-                    "imdb_id": series['imdb_id'],
-                    "series_name": series['series_name'],
-                    "my_rating": None}, index=[index])
-            print(f"Adding {series['series_name']}")
-        else:
-            rating = pd.DataFrame({
-                "imdb_id": None,
-                "series_name": None,
-                "my_rating": None}, index=[index])
-            print(f'Adding {index}')
+        rating = pd.DataFrame({
+            'imdb_id': None,
+            "series_name": get_series_name_from_series_id(series_id=index),
+            "my_rating": None}, index=[index])
+        print(f"Adding {rating['series_name']}")
         my_ratings_df = my_ratings_df.append(rating)
 
     # Export the dataframe to the database.
@@ -134,9 +106,9 @@ def update_seen_tv_episodes():
     tv_episodes_df.to_sql('tv_episodes', engine, if_exists='replace')
 
 
-def show_predictions(local):
+def show_predictions():
     # Get data from imdb database.
-    engine = db_connect(local)
+    engine = db_connect()
     imdb_series_df = pd.read_sql_query('SELECT * FROM imdb', con=engine, index_col="id")
 
     # Sort predictions.

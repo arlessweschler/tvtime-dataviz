@@ -19,7 +19,6 @@ def db_connect():
     port = os.environ['POSTGRESQL_PORT']
     db = os.environ['POSTGRESQL_DB']
     database_url = f'postgres://{user}:{pwd}@{host}:{port}/{db}'
-    print(database_url)
     engine = create_engine(database_url)
     return engine
 
