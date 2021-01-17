@@ -1,3 +1,5 @@
+import logging
+
 from bs4 import BeautifulSoup
 
 from helpers.utility import strip_html_tags, transform_length
@@ -31,12 +33,17 @@ class TvShowScraper:
         except Exception:
             item["end_year"] = None
 
+        # N_EPISODES
+        item["n_episodes"] = int(self.html.find_all("span", {"class": "bp_sub_heading"})[-1].text.split(" ")[0])
+
         # LENGTH
         try:
             item["ep_length"] = strip_html_tags(self.html.find("div", {"class": "subtext"}).find("time").text)
             item['ep_length'] = transform_length(item["ep_length"])
+            if item['type'] == 'TV Mini-Series' and item['ep_length'] > 150:
+                item['ep_length'] = int(item['ep_length'] / item['n_episodes'])
         except Exception:
-            item["ep_length"] = None
+            item['ep_length'] = None
 
         # N_SEASONS
         try:
@@ -45,9 +52,6 @@ class TvShowScraper:
                 item["n_seasons"] = None
         except Exception:
             item["n_seasons"] = None
-
-        # N_EPISODES
-        item["n_episodes"] = self.html.find_all("span", {"class": "bp_sub_heading"})[-1].text.split(" ")[0]
 
         # POPULARITY
         try:

@@ -84,7 +84,7 @@ def update_seen_tv_episodes():
     # Read seen_episode.csv from Google Drive.
     dwn_url = 'https://drive.google.com/uc?export=download&id='
     id_seen_episode = '14rdbDyQzawc_Xh49M5Nvgenm2njk8Rx4'
-    seen_episode_df = pd.read_csv(StringIO(requests.get(dwn_url + id_seen_episode).text))
+    episodes_df = pd.read_csv(StringIO(requests.get(dwn_url + id_seen_episode).text))
 
     # Create csv file containing episodes.
     try:
@@ -93,12 +93,13 @@ def update_seen_tv_episodes():
         tv_episodes_df = pd.read_sql_query('SELECT * FROM tv_episodes', con=engine)
 
         # Collect info about new episodes.
-        need_info = seen_episode_df["episode_id"].map(lambda x: x not in list(tv_episodes_df["tvdb_id"]))
-        new_tv_episodes_df = get_episodes(seen_episode_df.loc[need_info])
+        need_info = episodes_df["episode_id"].map(lambda x: x not in list(tv_episodes_df["tvdb_id"]))
+        new_tv_episodes_df = get_episodes(episodes_df.loc[need_info])
+
         tv_episodes_df = tv_episodes_df.append(new_tv_episodes_df)
     except Exception:
         # Collect info all episodes.
-        tv_episodes_df = get_episodes(seen_episode_df)
+        tv_episodes_df = get_episodes(episodes_df)
 
     # Export the dataframe to the database.
     engine = db_connect()

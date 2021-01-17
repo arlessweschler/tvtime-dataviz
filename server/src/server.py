@@ -59,12 +59,9 @@ def update_ratings():
 # Updates the tv episodes, only locally.
 @app.route('/update-episodes', methods=['GET', 'POST'])
 def update_episodes():
-    if LOCAL:
-        process = Process(target=update_seen_tv_episodes, args=())
-        process.start()
-        return "Updating my episodes..."
-    else:
-        return 'Cannot perform this operation on the server!'
+    process = Process(target=update_seen_tv_episodes, args=())
+    process.start()
+    return "Updating my episodes..."
 
 
 # run the app
