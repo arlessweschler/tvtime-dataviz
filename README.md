@@ -6,7 +6,6 @@ tvtime-dataviz is a personal project created to improve my skills as a Data Scie
 
 I created the dataset by using:
 - a **spider** that crawls *imdb.com* looking for tv series and mini-series made after 1989 with at least 2.5k ratings;
-- **external APIs** from *thetvdb.com*;
 - a **data dump** obtained from *tvtime.com*, a website I use to track the TV series I watch. I analyzed and extracted data about all the TV series and episodes I have watched over the last 7 years of my life.
 - **personal ratings** (integers from 1 to 10) assigned to every TV series I have ever watched.
 
@@ -20,7 +19,7 @@ This repo contains two notebooks:
 
 A server deployed on Heroku updates every day a PostGreSQL database containing the dataset to be used by the model.
 
-The TV series recommended by the model can be seen at https://docker-website.herokuapp.com/imdb/.
+The TV series recommended by the model can be seen at https://docker-website.herokuapp.com/tv/.
 This website was created using Django+Bootstrap and deployed with Docker.
 
 
