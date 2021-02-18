@@ -8,5 +8,6 @@ requests
 scrapy
 sqlalchemy
 xgboost
-
+google-cloud-bigquery
 gunicorn
+pyarrow
