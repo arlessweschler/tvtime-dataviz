@@ -1,5 +1,3 @@
-import logging
-
 from bs4 import BeautifulSoup
 
 from helpers.utility import strip_html_tags, transform_length
@@ -18,7 +16,7 @@ class TvShowScraper:
         try:
             div = self.html.find_all("div", {"class": "see-more inline canwrap"})[1]
             genres = [a.text.strip() for a in div.find_all('a')]
-            item["genres"] = "|".join(genres)
+            item["genres"] = "|".join(genres).replace('-', '')
         except Exception:
             item["genres"] = None
 

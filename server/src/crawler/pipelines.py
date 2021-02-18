@@ -69,7 +69,7 @@ class ImdbCrawlerPipeline:
             per = spider.items / spider.tot_items * 100
             per_string = green(f"[{per:.1f}%]")
             logging.warning(f"{per_string} {spider.items} {tv_series.name}")
-            # Print speed every 100 items.
+            # Print speed every 50 items.
             if spider.items % 50 == 0:
                 speed = 50 / (time() - spider.time)
                 logging.warning(blue(f"[SPEED] {speed:.2f} e/s"))
