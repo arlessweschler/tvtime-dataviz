@@ -33,7 +33,7 @@ class ImdbCrawlerPipeline:
         tv_series.name = item["name"]
         tv_series.type = item["type"]
         tv_series.genres = item["genres"]
-        tv_series.overview = item['overview']
+        # tv_series.overview = item['overview']
         tv_series.start_year = item["start_year"]
         tv_series.end_year = item["end_year"]
         tv_series.ep_length = item["ep_length"]
