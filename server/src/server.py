@@ -3,17 +3,23 @@ from multiprocessing.dummy import Process
 
 from flask import Flask, request
 
-from helpers.helper import refine_db, show_predictions, update_my_ratings, update_seen_tv_episodes
+from helpers.helper import refine_db, show_predictions, update_my_ratings, update_tmdb_bq  # update_seen_tv_episodes
 from model import train_model
 from run_crawler import run_imdb_crawler
+
+import logging
+logging.basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
 
 app = Flask('server')
 
 
 def update_db():
     run_imdb_crawler()
+    logging.info('Crawler stopped.')
     refine_db()
+    logging.info('DB refined.')
     train_model()
+    logging.info('Model trained.')
 
 
 @app.route('/')
@@ -32,6 +38,16 @@ def update():
     if request.args.get('pwd') != os.environ['pwd']:
         return "Access denied."
     process = Process(target=update_db, args=())
+    process.start()
+    return "Updating database..."
+
+
+# Updates the database and train model.
+@app.route('/update-tmdb', methods=['GET', 'POST'])
+def update_tmdb():
+    if request.args.get('pwd') != os.environ['pwd']:
+        return "Access denied."
+    process = Process(target=update_tmdb_bq, args=())
     process.start()
     return "Updating database..."
 
@@ -56,12 +72,12 @@ def update_ratings():
     return "Updating my ratings..."
 
 
-# Updates the tv episodes, only locally.
-@app.route('/update-episodes', methods=['GET', 'POST'])
-def update_episodes():
-    process = Process(target=update_seen_tv_episodes, args=())
-    process.start()
-    return "Updating my episodes..."
+# # Updates the tv episodes, only locally.
+# @app.route('/update-episodes', methods=['GET', 'POST'])
+# def update_episodes():
+#     process = Process(target=update_seen_tv_episodes, args=())
+#     process.start()
+#     return "Updating my episodes..."
 
 
 # run the app
